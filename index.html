@@ -1,0 +1,1802 @@
+<!--
+  PE-001 KPI Goal Setting & Quarterly Tracking — DEMO VERSION
+  Version: 2.1 (Demo / Type C)
+  © 2026 HR Digital Products by Pattamapanee Thassakhorn
+  License: Single Company License — ห้าม resale, rebrand, แจกจ่ายต่อ
+  Contact: pattamapanee.tha@gmail.com
+  Demo: Max 3 employees | 1 AI call | Auto modal 8s
+  v2.1 NEW: localStorage persistence | SheetJS import | Org Goal Cascade | Goal Revision Log | Manager Bias Mirror
+-->
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>PE-001 KPI Goal Setting & Tracking — Demo v2.1 | HR Digital Products</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{
+  --navy:#1B2B4B;--blue:#2563EB;--teal:#0F766E;--orange:#EA580C;
+  --light:#f8fafc;--border:#e2e8f0;--text:#334155;--muted:#64748b;
+  --danger:#dc2626;--success:#16a34a;--warn:#d97706;--purple:#7c3aed;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:Arial,sans-serif;background:var(--light);color:var(--text);}
+
+/* ── SHELL ── */
+.demo-bar{background:linear-gradient(90deg,var(--orange),#c2410c);color:#fff;
+  text-align:center;padding:8px 16px;font-size:13px;font-weight:700;
+  position:sticky;top:0;z-index:200;}
+.demo-bar a{color:#fff;text-decoration:underline;cursor:pointer;margin-left:12px;}
+.copy-bar{background:var(--navy);color:rgba(255,255,255,.65);
+  font-size:11px;padding:5px 20px;text-align:center;}
+.app-header{background:linear-gradient(135deg,var(--navy),var(--blue));
+  color:#fff;padding:16px 24px;display:flex;justify-content:space-between;align-items:center;}
+.app-header h1{font-size:19px;font-weight:700;}
+.app-header .sub{font-size:12px;opacity:.8;margin-top:3px;}
+.lang-btn{background:rgba(255,255,255,.15);color:#fff;
+  border:1px solid rgba(255,255,255,.3);border-radius:6px;
+  padding:7px 14px;cursor:pointer;font-size:13px;font-family:Arial;}
+.lang-btn:hover{background:rgba(255,255,255,.25);}
+.tab-bar{background:#fff;border-bottom:2px solid var(--border);display:flex;padding:0 16px;}
+.tab-btn{background:none;border:none;padding:13px 18px;color:var(--muted);
+  cursor:pointer;font-size:13px;font-family:Arial;
+  border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s;}
+.tab-btn:hover{color:var(--navy);}
+.tab-btn.active{color:var(--navy);border-bottom-color:var(--blue);font-weight:700;}
+.tab-content{display:none;padding:22px;max-width:1120px;margin:0 auto;}
+.tab-content.active{display:block;}
+.app-footer{background:var(--navy);color:rgba(255,255,255,.55);
+  font-size:11px;padding:12px 24px;text-align:center;margin-top:40px;}
+
+/* ── CARDS ── */
+.card{background:#fff;border-radius:10px;padding:18px 20px;
+  box-shadow:0 1px 4px rgba(0,0,0,.06);margin-bottom:18px;}
+.card-title{font-size:14px;font-weight:700;color:var(--navy);
+  margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.badge{font-size:11px;background:#eff6ff;color:var(--blue);
+  padding:2px 8px;border-radius:20px;font-weight:600;}
+.badge-warn{background:#fffbeb;color:var(--warn);}
+.badge-ok{background:#f0fdf4;color:var(--success);}
+
+/* ── KPI METRIC CARDS ── */
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
+  gap:12px;margin-bottom:18px;}
+.kpi-box{background:#fff;border-radius:10px;padding:14px 16px;
+  border-top:3px solid var(--blue);box-shadow:0 1px 4px rgba(0,0,0,.05);}
+.kpi-box.ct{border-top-color:var(--teal);}
+.kpi-box.co{border-top-color:var(--orange);}
+.kpi-box.cg{border-top-color:var(--success);}
+.kpi-box.cp{border-top-color:var(--purple);}
+.kpi-box.cr{border-top-color:var(--danger);}
+.kv{font-size:26px;font-weight:800;color:var(--navy);line-height:1.1;}
+.kv.sm{font-size:20px;}
+.kl{font-size:11px;color:var(--muted);font-weight:600;margin-top:4px;}
+.kd{font-size:11px;font-weight:600;margin-top:3px;}
+.kd-up{color:var(--danger);}  .kd-ok{color:var(--success);}
+
+/* ── FORM ── */
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin-bottom:14px;}
+.fg{display:flex;flex-direction:column;gap:4px;}
+label{font-size:12px;color:var(--muted);font-weight:600;}
+input,select,textarea{font-family:Arial;font-size:13px;border:1px solid var(--border);
+  border-radius:6px;padding:8px 10px;outline:none;transition:border .15s;width:100%;}
+input:focus,select:focus,textarea:focus{border-color:var(--blue);}
+
+/* ── BUTTONS ── */
+.btn{padding:8px 16px;border-radius:7px;border:none;cursor:pointer;
+  font-family:Arial;font-size:13px;font-weight:600;transition:all .15s;}
+.btn:hover{opacity:.88;transform:translateY(-1px);}
+.btn-primary{background:var(--blue);color:#fff;}
+.btn-teal{background:var(--teal);color:#fff;}
+.btn-orange{background:var(--orange);color:#fff;}
+.btn-outline{background:#fff;color:var(--navy);border:1px solid var(--border);}
+.btn-sm{padding:4px 10px;font-size:12px;border-radius:5px;border:none;cursor:pointer;font-family:Arial;}
+.btn-edit{background:#eff6ff;color:var(--blue);}
+.btn-del{background:#fef2f2;color:var(--danger);}
+.btn-ai{background:linear-gradient(135deg,var(--purple),var(--blue));color:#fff;
+  display:flex;align-items:center;gap:6px;}
+.btn-group{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;}
+
+/* ── IMPORT ZONE ── */
+.import-zone{background:linear-gradient(135deg,#f0f9ff,#e0f2fe);
+  border:1.5px dashed #38bdf8;border-radius:12px;padding:16px 20px;
+  margin-bottom:18px;display:flex;align-items:center;
+  justify-content:space-between;flex-wrap:wrap;gap:12px;}
+.import-left .t{font-size:14px;font-weight:700;color:var(--navy);}
+.import-left .s{font-size:12px;color:var(--muted);margin-top:2px;}
+.import-actions{display:flex;gap:10px;flex-wrap:wrap;}
+.btn-dl{background:#0369a1;color:#fff;border:none;border-radius:7px;
+  padding:8px 15px;font-size:13px;font-weight:600;cursor:pointer;
+  font-family:Arial;display:flex;align-items:center;gap:5px;}
+.btn-dl:hover{background:#0284c7;}
+.btn-ul{background:#fff;color:var(--navy);border:1.5px solid #38bdf8;
+  border-radius:7px;padding:8px 15px;font-size:13px;font-weight:600;
+  cursor:pointer;font-family:Arial;display:flex;align-items:center;gap:5px;}
+.btn-ul:hover{background:#e0f2fe;}
+.upload-ok{background:#f0fdf4;border:1px solid #86efac;border-radius:8px;
+  padding:9px 14px;font-size:13px;color:#15803d;margin-bottom:14px;display:none;}
+
+/* ── ORG GOAL CASCADE ── */
+.cascade-zone{background:linear-gradient(135deg,#faf5ff,#f5f3ff);
+  border:1px solid #c4b5fd;border-radius:10px;padding:14px 16px;margin-bottom:16px;}
+.cascade-title{font-size:13px;font-weight:700;color:var(--purple);
+  margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.cascade-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.cascade-tag{display:inline-flex;align-items:center;gap:4px;
+  background:#ede9fe;color:var(--purple);padding:3px 9px;
+  border-radius:20px;font-size:11px;font-weight:700;}
+
+/* ── KPI TABLE ── */
+.kpi-wrap{border:1px solid var(--border);border-radius:8px;overflow:hidden;}
+.kpi-row-hd{display:grid;grid-template-columns:2fr 1.4fr 70px 70px 80px 70px;
+  gap:6px;padding:9px 12px;background:var(--navy);color:#fff;
+  font-size:11px;font-weight:700;}
+.kpi-row-item{display:grid;grid-template-columns:2fr 1.4fr 70px 70px 80px 70px;
+  gap:6px;padding:9px 12px;align-items:center;font-size:12px;
+  border-bottom:1px solid var(--border);}
+.kpi-row-item:last-child{border-bottom:none;}
+.kpi-row-item input,.kpi-row-item select{font-size:12px;padding:5px 7px;}
+.wt-badge{background:#eff6ff;color:var(--blue);padding:2px 8px;
+  border-radius:12px;font-size:12px;font-weight:700;}
+.wt-badge.over{background:#fef2f2;color:var(--danger);}
+.wt-total{display:flex;align-items:center;gap:8px;padding:8px 12px;
+  background:var(--light);border-top:2px solid var(--border);font-size:13px;font-weight:700;}
+.wt-total.ok{color:var(--success);}  .wt-total.bad{color:var(--danger);}
+
+/* ── REVISION LOG ── */
+.rev-badge{display:inline-flex;align-items:center;gap:4px;
+  background:#fef9c3;color:#854d0e;padding:2px 7px;
+  border-radius:12px;font-size:11px;font-weight:700;cursor:pointer;}
+.rev-history{background:#fffbeb;border:1px solid #fcd34d;border-radius:8px;
+  padding:12px;margin-top:8px;font-size:12px;}
+.rev-item{padding:5px 0;border-bottom:1px solid #fef3c7;color:var(--text);}
+.rev-item:last-child{border-bottom:none;}
+
+/* ── EMP TABLE ── */
+.emp-table{width:100%;border-collapse:collapse;font-size:13px;}
+.emp-table th{background:var(--navy);color:#fff;padding:9px 12px;text-align:left;font-size:11px;}
+.emp-table td{padding:9px 12px;border-bottom:1px solid var(--border);}
+.emp-table tr:hover td{background:#f8fafc;}
+.pill{padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;display:inline-block;}
+.pill-A{background:#dcfce7;color:#15803d;}
+.pill-B{background:#dbeafe;color:#1d4ed8;}
+.pill-C{background:#fef9c3;color:#854d0e;}
+.pill-D{background:#fef2f2;color:var(--danger);}
+.pill-none{background:#f1f5f9;color:var(--muted);}
+
+/* ── QUARTERLY ── */
+.q-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;}
+.q-card{background:#fff;border-radius:8px;padding:12px;border:1px solid var(--border);text-align:center;}
+.q-card.active-q{border-color:var(--blue);background:#eff6ff;}
+.q-label{font-size:11px;color:var(--muted);font-weight:700;margin-bottom:5px;}
+.q-score{font-size:20px;font-weight:700;color:var(--navy);}
+.q-prog{height:5px;background:#e2e8f0;border-radius:3px;margin-top:7px;overflow:hidden;}
+.q-prog-bar{height:100%;background:var(--blue);border-radius:3px;transition:width .4s;}
+.ci-row{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 70px;
+  gap:6px;padding:9px 12px;align-items:center;font-size:12px;border-bottom:1px solid var(--border);}
+.ci-row.hd{background:var(--light);font-weight:700;color:var(--muted);font-size:11px;}
+
+/* ── REMARK ── */
+.remark-box{background:#fafafa;border:1px solid var(--border);border-radius:10px;
+  padding:14px 16px;margin-top:14px;}
+.remark-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.rm-label{font-size:11px;font-weight:700;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px;}
+textarea.rm-input{font-family:Arial;font-size:13px;border:1px solid var(--border);
+  border-radius:6px;padding:8px 10px;resize:vertical;min-height:68px;
+  outline:none;transition:border .15s;width:100%;}
+textarea.rm-input:focus{border-color:var(--blue);}
+
+/* ── BIAS MIRROR ── */
+.bias-panel{background:linear-gradient(135deg,#fff7ed,#ffedd5);
+  border:1px solid #fdba74;border-radius:10px;padding:14px 16px;margin-bottom:14px;}
+.bias-title{font-size:13px;font-weight:700;color:#c2410c;margin-bottom:8px;
+  display:flex;align-items:center;gap:6px;}
+.bias-meter-wrap{display:flex;align-items:center;gap:10px;margin-top:6px;}
+.bias-meter{flex:1;height:10px;background:#e2e8f0;border-radius:5px;overflow:hidden;}
+.bias-fill{height:100%;border-radius:5px;transition:width .5s;}
+.bias-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:3px;}
+
+/* ── DASHBOARD ── */
+.chart-grid-2{display:grid;grid-template-columns:1.4fr 1fr;gap:14px;margin-bottom:16px;}
+.chart-grid-2-r{display:flex;flex-direction:column;gap:14px;}
+.chart-box{background:#fff;border-radius:10px;padding:16px;
+  box-shadow:0 1px 4px rgba(0,0,0,.06);}
+.chart-title{font-size:13px;font-weight:700;color:var(--navy);margin-bottom:12px;}
+.insight-panel{background:linear-gradient(135deg,#fefce8,#fef9c3);
+  border:1px solid #fcd34d;border-radius:10px;padding:14px 16px;margin-bottom:16px;}
+.insight-title{font-size:13px;font-weight:700;color:#92400e;
+  margin-bottom:7px;display:flex;align-items:center;gap:6px;}
+.insight-body{font-size:13px;color:#78350f;line-height:1.6;}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+.chip{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+.chip-r{background:#fef2f2;color:var(--danger);}
+.chip-g{background:#f0fdf4;color:var(--success);}
+.chip-b{background:#eff6ff;color:var(--blue);}
+
+/* ── AI PANEL ── */
+.ai-panel{background:linear-gradient(135deg,#f5f3ff,#eff6ff);
+  border:1px solid #c4b5fd;border-radius:10px;padding:14px;margin-bottom:14px;}
+.ai-badge{display:inline-flex;align-items:center;gap:4px;
+  background:linear-gradient(135deg,var(--purple),var(--blue));
+  color:#fff;padding:3px 10px;border-radius:20px;
+  font-size:11px;font-weight:700;margin-bottom:9px;}
+.ai-result-box{background:#fff;border-radius:8px;padding:12px;
+  font-size:13px;line-height:1.6;border:1px solid #e9d5ff;margin-top:9px;}
+.spinner{width:16px;height:16px;border:2px solid #e9d5ff;
+  border-top-color:var(--purple);border-radius:50%;
+  animation:spin .7s linear infinite;display:inline-block;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.demo-ai-note{background:#fffbeb;border:1px solid #fcd34d;border-radius:6px;
+  padding:7px 11px;font-size:12px;color:#92400e;margin-top:8px;}
+
+/* ── ALERTS ── */
+.alert{border-radius:8px;padding:11px 14px;margin-bottom:14px;
+  display:flex;align-items:flex-start;gap:9px;font-size:13px;}
+.alert-warn{background:#fffbeb;border:1px solid #fcd34d;}
+.alert-ok{background:#f0fdf4;border:1px solid #86efac;}
+.alert-info{background:#eff6ff;border:1px solid #bfdbfe;}
+
+/* ── MODAL ── */
+.modal-ov{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:999;
+  display:flex;align-items:center;justify-content:center;padding:16px;}
+.modal-ov.hidden{display:none;}
+.modal-box{background:#fff;border-radius:14px;padding:24px;max-width:480px;
+  width:100%;max-height:90vh;overflow-y:auto;position:relative;
+  box-shadow:0 20px 60px rgba(0,0,0,.25);}
+.modal-close{position:absolute;top:12px;right:16px;background:none;
+  border:none;font-size:22px;color:#94a3b8;cursor:pointer;}
+.price-badge-big{text-align:center;background:#eff6ff;border-radius:10px;
+  padding:10px;margin:12px 0;}
+.price-big{font-size:28px;font-weight:800;color:var(--blue);}
+.feat-compare{display:flex;gap:8px;margin:12px 0;}
+.feat-col{flex:1;border-radius:8px;overflow:hidden;border:1px solid var(--border);}
+.feat-head{padding:7px;text-align:center;font-size:12px;font-weight:700;}
+.feat-col.demo .feat-head{background:#f1f5f9;color:var(--muted);}
+.feat-col.full .feat-head{background:var(--navy);color:#fff;}
+.feat-row{padding:5px 9px;font-size:11px;border-top:1px solid #f1f5f9;}
+.feat-row.no{color:var(--danger);}
+.pay-section{background:var(--light);border-radius:10px;padding:12px 14px;
+  margin:12px 0;border:1px solid var(--border);}
+.pay-grid{display:flex;gap:12px;align-items:flex-start;}
+.qr-img{width:90px;height:90px;border-radius:7px;border:2px solid var(--border);}
+.qr-fb{width:90px;height:90px;border-radius:7px;background:#e2e8f0;
+  display:none;flex-direction:column;align-items:center;
+  justify-content:center;font-size:22px;color:var(--muted);}
+.pay-rows{flex:1;}
+.pay-row{display:flex;justify-content:space-between;padding:4px 0;
+  border-bottom:1px solid var(--border);font-size:12px;}
+.pay-label{color:var(--muted);}
+.pay-val{font-weight:600;color:var(--navy);}
+.pay-val.big{color:var(--blue);font-size:14px;}
+.pay-steps{margin-top:7px;display:flex;flex-direction:column;gap:3px;}
+.pay-step{font-size:11px;}
+.btn-buy{display:block;text-align:center;background:var(--blue);color:#fff;
+  border-radius:8px;padding:10px;font-size:14px;font-weight:700;
+  text-decoration:none;margin-bottom:8px;}
+.btn-buy:hover{background:#1d4ed8;}
+.btn-demo-cont{display:block;width:100%;text-align:center;background:none;
+  border:1px solid var(--border);border-radius:8px;padding:8px;
+  font-size:13px;color:var(--muted);cursor:pointer;font-family:Arial;}
+
+/* ── MODAL SMALL (Revision) ── */
+.modal-sm{max-width:420px;}
+
+/* ── TOGGLE ── */
+.toggle-row{display:flex;align-items:center;gap:8px;margin-bottom:12px;font-size:13px;}
+.tog{position:relative;width:38px;height:21px;cursor:pointer;}
+.tog input{opacity:0;width:0;height:0;}
+.tog-track{position:absolute;inset:0;background:#e2e8f0;border-radius:11px;transition:.2s;}
+.tog input:checked+.tog-track{background:var(--blue);}
+.tog-thumb{position:absolute;top:3px;left:3px;width:15px;height:15px;
+  background:#fff;border-radius:50%;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.2);}
+.tog input:checked~.tog-thumb{left:20px;}
+
+/* ── TOAST ── */
+.toast-wrap{position:fixed;bottom:20px;right:20px;z-index:9999;
+  display:flex;flex-direction:column;gap:8px;}
+.toast{background:var(--navy);color:#fff;padding:9px 15px;border-radius:8px;
+  font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.2);
+  animation:slideIn .3s ease;max-width:280px;}
+.toast.ok{background:var(--success);}
+.toast.warn{background:var(--warn);}
+.toast.err{background:var(--danger);}
+@keyframes slideIn{from{transform:translateX(100px);opacity:0}to{transform:none;opacity:1}}
+
+/* ── PRINT ── */
+@media print{
+  .demo-bar,.copy-bar,.app-header,.tab-bar,.btn-group,
+  .app-footer,.modal-ov,.toast-wrap,.no-print{display:none!important;}
+  .tab-content{display:block!important;}
+  body{background:#fff;}
+}
+@media(max-width:700px){
+  .chart-grid-2{grid-template-columns:1fr;}
+  .q-grid{grid-template-columns:repeat(2,1fr);}
+  .remark-grid{grid-template-columns:1fr;}
+  .cascade-grid{grid-template-columns:1fr;}
+}
+
+/* KPI NOTE EXPANDABLE */
+.kpi-note-wrap{border-top:1px dashed #e2e8f0;background:#fafbff;padding:0;}
+.kpi-note-toggle{display:flex;align-items:center;gap:5px;padding:5px 12px;
+  cursor:pointer;font-size:11px;color:var(--muted);font-weight:600;
+  user-select:none;transition:color .15s;}
+.kpi-note-toggle:hover{color:var(--blue);}
+.kpi-note-body{display:none;padding:8px 12px 10px;background:#f8faff;border-top:1px solid #e0e7ff;}
+.kpi-note-body.open{display:block;}
+.kpi-note-label{font-size:11px;font-weight:700;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px;}
+.kpi-note-ta{font-family:Arial;font-size:12px;border:1px solid var(--border);
+  border-radius:5px;padding:6px 9px;resize:vertical;min-height:52px;
+  outline:none;transition:border .15s;width:100%;}
+.kpi-note-ta:focus{border-color:var(--blue);}
+.coaching-tabs{display:flex;gap:4px;margin-top:8px;margin-bottom:6px;}
+.ctab{padding:3px 10px;border-radius:5px;font-size:11px;font-weight:700;
+  cursor:pointer;border:1px solid var(--border);background:#fff;color:var(--muted);
+  font-family:Arial;transition:all .15s;}
+.ctab.active{background:var(--blue);color:#fff;border-color:var(--blue);}
+.ctab:hover:not(.active){background:#eff6ff;color:var(--blue);}
+.coaching-pane{display:none;}
+.coaching-pane.open{display:block;}
+
+
+/* KPI ROW + COMMENT IN CHECK-IN — redesigned */
+.ci-kpi-item{border-bottom:1px solid var(--border);}
+.ci-kpi-item:last-child{border-bottom:none;}
+.ci-main-row{display:grid;grid-template-columns:2.2fr 1fr 1fr 1.1fr 68px;
+  gap:6px;padding:10px 14px;align-items:center;}
+.ci-kpi-name{font-size:13px;font-weight:700;color:var(--navy);}
+.ci-kpi-sub{font-size:11px;color:var(--muted);margin-top:1px;}
+.ci-score-wrap{display:flex;flex-direction:column;gap:3px;}
+.ci-score-num{font-weight:700;color:var(--blue);font-size:13px;}
+.ci-score-bar{height:4px;background:#e2e8f0;border-radius:2px;overflow:hidden;width:100%;}
+.ci-score-fill{height:100%;border-radius:2px;transition:width .5s;}
+.ci-sub-row{background:#f8faff;border-top:1px dashed #c7d2fe;}
+.ci-note-toggle{display:flex;align-items:center;justify-content:space-between;
+  padding:5px 14px;cursor:pointer;user-select:none;}
+.ci-note-toggle:hover{background:#eff6ff;}
+.ci-toggle-left{display:flex;align-items:center;gap:6px;font-size:11px;}
+.ci-toggle-pill{background:#eff6ff;color:var(--blue);padding:2px 10px;
+  border-radius:20px;font-size:11px;font-weight:700;border:1px solid #bfdbfe;
+  transition:all .15s;}
+.ci-note-toggle:hover .ci-toggle-pill{background:var(--blue);color:#fff;}
+.ci-toggle-pill.has-note{background:#f0fdf4;color:var(--success);border-color:#86efac;}
+.ci-note-body{display:none;padding:10px 14px 12px;}
+.ci-note-body.open{display:block;}
+.ci-context-hint{background:#faf5ff;border:1px solid #e9d5ff;border-radius:7px;
+  padding:7px 11px;font-size:12px;color:#6d28d9;margin-bottom:10px;
+  display:flex;align-items:flex-start;gap:6px;line-height:1.5;}
+.ci-note-2col{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+@media(max-width:600px){.ci-note-2col{grid-template-columns:1fr;}}
+.ci-note-label{font-size:11px;font-weight:700;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px;}
+.ci-comment-ta{font-family:Arial;font-size:12px;border:1px solid var(--border);
+  border-radius:6px;padding:7px 10px;resize:vertical;min-height:56px;
+  outline:none;transition:border .15s;width:100%;}
+.ci-comment-ta:focus{border-color:var(--blue);}
+.ci-coaching-box{background:#f5f3ff;border:1px solid #ddd6fe;border-radius:7px;
+  padding:9px 11px;font-size:12px;color:var(--text);line-height:1.6;}
+.ci-coaching-empty{color:var(--muted);font-style:italic;font-size:12px;}
+
+/* HIGH PERFORMANCE TEASER */
+.hp-section{background:linear-gradient(135deg,#fefce8,#fef3c7);
+  border:1.5px solid #f59e0b;border-radius:12px;padding:16px 18px;margin-bottom:16px;}
+.hp-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;}
+.hp-title{font-size:14px;font-weight:700;color:#92400e;display:flex;align-items:center;gap:6px;}
+.hp-badge-locked{background:#f59e0b;color:#fff;padding:3px 10px;border-radius:20px;
+  font-size:11px;font-weight:700;cursor:pointer;}
+.hp-badge-locked:hover{background:#d97706;}
+.hp-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;}
+.hp-card{background:#fff;border-radius:9px;padding:12px 14px;border:1px solid #fde68a;
+  position:relative;overflow:hidden;}
+.hp-card::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;}
+.hp-card.star::before{background:#f59e0b;}
+.hp-card.rise::before{background:var(--teal);}
+.hp-card.watch::before{background:var(--orange);}
+.hp-emp-name{font-size:13px;font-weight:700;color:var(--navy);}
+.hp-emp-pos{font-size:11px;color:var(--muted);margin-top:1px;}
+.hp-score{font-size:20px;font-weight:800;margin-top:6px;}
+.hp-score.gold{color:#d97706;}
+.hp-score.teal{color:var(--teal);}
+.hp-score.orange{color:var(--orange);}
+.hp-tag{display:inline-block;margin-top:5px;padding:2px 8px;border-radius:20px;
+  font-size:11px;font-weight:700;}
+.hp-tag-gold{background:#fef3c7;color:#92400e;}
+.hp-tag-teal{background:#ccfbf1;color:#0f766e;}
+.hp-tag-orange{background:#ffedd5;color:#c2410c;}
+.hp-blur-note{background:rgba(255,255,255,.7);border-radius:8px;
+  padding:10px 14px;margin-top:12px;font-size:12px;color:#92400e;
+  border:1px dashed #f59e0b;display:flex;align-items:center;gap:8px;}
+
+</style>
+</head>
+<body>
+
+<!-- DEMO BAR -->
+<div class="demo-bar">
+  🔒 DEMO VERSION — สูงสุด 3 พนักงาน | 1 AI call
+  <a onclick="showUpgrade('topbar')">🛒 ซื้อ Full Version ฿765</a>
+</div>
+<div class="copy-bar">
+  © <span id="cy">2026</span> HR Digital Products by Pattamapanee Thassakhorn &nbsp;|&nbsp;
+  Single Company License — ห้าม resale, rebrand, แจกจ่ายต่อ
+</div>
+
+<!-- HEADER -->
+<div class="app-header">
+  <div>
+    <h1>🎯 PE-001 KPI Goal Setting & Quarterly Tracking</h1>
+    <div class="sub" id="hdr-sub">ระบบตั้งเป้าหมาย KPI และติดตามผลรายไตรมาส | HR Digital Products</div>
+  </div>
+  <button class="lang-btn" onclick="toggleLang()">🌐 EN/TH</button>
+</div>
+
+<!-- TAB BAR -->
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab('t1')" id="tabBtn-t1">🎯 <span id="tb1">ตั้ง KPI</span></button>
+  <button class="tab-btn" onclick="switchTab('t2')" id="tabBtn-t2">📅 <span id="tb2">ติดตามผล</span></button>
+  <button class="tab-btn" onclick="switchTab('t3')" id="tabBtn-t3">📊 <span id="tb3">Dashboard</span></button>
+</div>
+
+<!-- ══════════════════════════════════════════
+     TAB 1 — GOAL SETTING
+══════════════════════════════════════════ -->
+<div class="tab-content active" id="t1">
+
+  <!-- DEMO ALERT -->
+  <div class="alert alert-warn">
+    <span>⚠️</span>
+    <div><strong>DEMO VERSION</strong> —
+      <span data-th="เพิ่มพนักงานได้สูงสุด 3 คน | Full Version: ไม่จำกัด + Export + AI ไม่จำกัด"
+            data-en="Max 3 employees | Full Version: unlimited + Export + unlimited AI">
+        เพิ่มพนักงานได้สูงสุด 3 คน | Full Version: ไม่จำกัด + Export + AI ไม่จำกัด
+      </span>
+    </div>
+  </div>
+
+  <!-- IMPORT ZONE -->
+  <div class="import-zone">
+    <div class="import-left">
+      <div class="t">📋 <span data-th="นำเข้าข้อมูลพนักงานจาก Excel" data-en="Import Employees from Excel">นำเข้าข้อมูลพนักงานจาก Excel</span></div>
+      <div class="s" data-th="ดาวน์โหลด Template → กรอกข้อมูล → อัปโหลดกลับ" data-en="Download Template → Fill in → Upload back">ดาวน์โหลด Template → กรอกข้อมูล → อัปโหลดกลับ</div>
+    </div>
+    <div class="import-actions">
+      <button class="btn-dl" onclick="dlTemplate()">⬇️ <span data-th="ดาวน์โหลด Template" data-en="Download Template">ดาวน์โหลด Template</span></button>
+      <label class="btn-ul">
+        ⬆️ <span data-th="อัปโหลด Excel" data-en="Upload Excel">อัปโหลด Excel</span>
+        <input type="file" accept=".xlsx,.xls,.csv" style="display:none" onchange="importXL(this)">
+      </label>
+    </div>
+  </div>
+  <div class="upload-ok" id="ul-ok">✅ <span id="ul-msg">นำเข้าสำเร็จ</span></div>
+
+  <!-- ADD EMPLOYEE -->
+  <div class="card">
+    <div class="card-title">👤 <span data-th="เพิ่มพนักงาน" data-en="Add Employee">เพิ่มพนักงาน</span>
+      <span class="badge" id="emp-badge">0/3 (Demo)</span>
+    </div>
+    <div class="form-grid">
+      <div class="fg"><label data-th="ชื่อ-นามสกุล" data-en="Full Name">ชื่อ-นามสกุล</label>
+        <input id="inp-name" placeholder="สมชาย ใจดี"></div>
+      <div class="fg"><label data-th="ตำแหน่ง" data-en="Position">ตำแหน่ง</label>
+        <input id="inp-pos" placeholder="HR Manager"></div>
+      <div class="fg"><label data-th="แผนก" data-en="Department">แผนก</label>
+        <input id="inp-dept" placeholder="HR"></div>
+      <div class="fg"><label data-th="ปีประเมิน" data-en="Year">ปีประเมิน</label>
+        <input id="inp-year" type="number" value="2026"></div>
+    </div>
+    <button class="btn btn-primary" onclick="addEmp()">➕ <span data-th="เพิ่มพนักงาน" data-en="Add Employee">เพิ่มพนักงาน</span></button>
+  </div>
+
+  <!-- KPI SETUP -->
+  <div class="card" id="kpi-card" style="display:none">
+    <div class="card-title">📋 <span data-th="ตั้ง KPI สำหรับ" data-en="Set KPI for">ตั้ง KPI สำหรับ</span>:
+      <select id="sel-emp" onchange="renderKpiSetup()" style="font-size:14px;font-weight:700;border:none;color:var(--blue);background:transparent;outline:none;cursor:pointer;"></select>
+    </div>
+
+    <!-- ORG GOAL CASCADE -->
+    <div class="cascade-zone">
+      <div class="cascade-title">🏢 <span data-th="เชื่อม KPI กับ Org Goal (Cascade)" data-en="Link KPI to Org Goal (Cascade)">เชื่อม KPI กับ Org Goal (Cascade)</span></div>
+      <div class="cascade-grid">
+        <div class="fg">
+          <label data-th="Company Goal ปีนี้" data-en="Company Goal This Year">Company Goal ปีนี้</label>
+          <input id="inp-comp-goal" placeholder="เช่น เพิ่มรายได้ 20%, ลด Cost 10%..." onchange="saveOrgGoals()">
+        </div>
+        <div class="fg">
+          <label data-th="Department Goal" data-en="Department Goal">Department Goal</label>
+          <input id="inp-dept-goal" placeholder="เช่น Retain talent rate >90%, Fill rate <30 days..." onchange="saveOrgGoals()">
+        </div>
+      </div>
+    </div>
+
+    <!-- AI PANEL -->
+    <div class="ai-panel">
+      <div class="ai-badge">✨ AI แนะนำ SMART KPI</div>
+      <div class="form-grid" style="grid-template-columns:1fr 1fr;">
+        <div class="fg"><label data-th="ตำแหน่ง/บทบาท" data-en="Role">ตำแหน่ง/บทบาท</label>
+          <input id="ai-role" placeholder="HR Manager, Production Supervisor..."></div>
+        <div class="fg"><label data-th="อุตสาหกรรม" data-en="Industry">อุตสาหกรรม</label>
+          <input id="ai-ind" placeholder="Manufacturing, Retail, Finance..."></div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;margin-top:2px;">
+        <button class="btn btn-ai" onclick="genAI()">✨ <span data-th="แนะนำ KPI" data-en="Suggest KPI">แนะนำ KPI</span></button>
+        <span id="ai-spin" style="display:none;"><span class="spinner"></span> <span style="font-size:13px;color:var(--muted);">กำลังสร้าง...</span></span>
+      </div>
+      <div id="ai-out" style="display:none;"></div>
+      <div class="demo-ai-note">🔒 Demo: ใช้ AI ได้ 1 ครั้ง | Full Version: ไม่จำกัด</div>
+    </div>
+
+    <!-- KPI ITEMS -->
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+      <strong style="font-size:13px;color:var(--navy);" data-th="รายการ KPI" data-en="KPI Items">รายการ KPI</strong>
+      <button class="btn btn-outline" style="font-size:12px;padding:5px 12px;" onclick="addKpiRow()">➕ เพิ่ม KPI</button>
+    </div>
+    <div class="kpi-wrap">
+      <div class="kpi-row-hd">
+        <span>KPI / <span data-th="รายการ" data-en="Item">รายการ</span></span>
+        <span data-th="เป้าหมาย" data-en="Target">เป้าหมาย</span>
+        <span data-th="น้ำหนัก%" data-en="Weight%">น้ำหนัก%</span>
+        <span data-th="หน่วย" data-en="Unit">หน่วย</span>
+        <span data-th="ประเภท" data-en="Type">ประเภท</span>
+        <span></span>
+      </div>
+      <div id="kpi-rows"></div>
+    </div>
+    <div class="wt-total" id="wt-total">
+      <span>⚖️ <span data-th="รวมน้ำหนัก" data-en="Total Weight">รวมน้ำหนัก</span>:</span>
+      <span id="wt-sum">0%</span>
+      <span id="wt-status"></span>
+    </div>
+    <div class="btn-group" style="margin-top:12px;">
+      <button class="btn btn-teal" onclick="saveKpis()">💾 <span data-th="บันทึก KPI" data-en="Save KPI">บันทึก KPI</span></button>
+      <button class="btn btn-outline" style="font-size:12px;" onclick="showRevModal()">
+        📝 <span data-th="ขอแก้ไข KPI (Goal Revision)" data-en="Request KPI Revision">ขอแก้ไข KPI</span>
+      </button>
+    </div>
+
+    <!-- REVISION HISTORY -->
+    <div id="rev-hist" style="display:none;margin-top:10px;"></div>
+  </div>
+
+  <!-- EMP OVERVIEW TABLE -->
+  <div class="card" id="emp-table-card" style="display:none">
+    <div class="card-title">👥 <span data-th="รายชื่อพนักงาน" data-en="Employee List">รายชื่อพนักงาน</span></div>
+    <div style="overflow-x:auto;">
+      <table class="emp-table">
+        <thead><tr>
+          <th>#</th><th data-th="ชื่อ" data-en="Name">ชื่อ</th>
+          <th data-th="ตำแหน่ง" data-en="Position">ตำแหน่ง</th>
+          <th data-th="แผนก" data-en="Dept">แผนก</th>
+          <th>KPI</th><th data-th="คะแนน" data-en="Score">คะแนน</th>
+          <th>Rating</th><th></th>
+        </tr></thead>
+        <tbody id="emp-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     TAB 2 — QUARTERLY TRACKING
+══════════════════════════════════════════ -->
+<div class="tab-content" id="t2">
+  <div class="card">
+    <div class="card-title">📅 <span data-th="บันทึกผลรายไตรมาส" data-en="Quarterly Check-in">บันทึกผลรายไตรมาส</span></div>
+    <div class="form-grid" style="grid-template-columns:1fr 1fr;">
+      <div class="fg"><label data-th="เลือกพนักงาน" data-en="Select Employee">เลือกพนักงาน</label>
+        <select id="sel-trk" onchange="renderCI()"><option value="">-- เลือก --</option></select></div>
+      <div class="fg"><label data-th="ไตรมาส" data-en="Quarter">ไตรมาส</label>
+        <select id="sel-q" onchange="renderCI()">
+          <option value="Q1">Q1 (ม.ค.–มี.ค.)</option>
+          <option value="Q2">Q2 (เม.ย.–มิ.ย.)</option>
+          <option value="Q3" selected>Q3 (ก.ค.–ก.ย.)</option>
+          <option value="Q4">Q4 (ต.ค.–ธ.ค.)</option>
+        </select></div>
+    </div>
+  </div>
+
+  <!-- BIAS MIRROR -->
+  <div class="bias-panel" id="bias-panel" style="display:none;">
+    <div class="bias-title">🔍 Manager Bias Mirror
+      <span class="badge badge-warn" id="bias-badge">—</span>
+    </div>
+    <div style="font-size:13px;color:#7c2d12;" id="bias-text">—</div>
+    <div class="bias-meter-wrap">
+      <span style="font-size:11px;color:var(--muted);">Low</span>
+      <div class="bias-meter"><div class="bias-fill" id="bias-fill" style="width:0%"></div></div>
+      <span style="font-size:11px;color:var(--muted);">High</span>
+    </div>
+    <div class="bias-labels"><span>ต่ำกว่าเป้า</span><span>สมดุล</span><span>สูงกว่าเป้า</span></div>
+  </div>
+
+  <!-- Q CARDS -->
+  <div class="q-grid" id="q-cards" style="display:none;">
+    <div class="q-card" id="qc-Q1"><div class="q-label">Q1 ม.ค.–มี.ค.</div>
+      <div class="q-score" id="qs-Q1">—</div>
+      <div class="q-prog"><div class="q-prog-bar" id="qp-Q1" style="width:0%"></div></div></div>
+    <div class="q-card" id="qc-Q2"><div class="q-label">Q2 เม.ย.–มิ.ย.</div>
+      <div class="q-score" id="qs-Q2">—</div>
+      <div class="q-prog"><div class="q-prog-bar" id="qp-Q2" style="width:0%"></div></div></div>
+    <div class="q-card" id="qc-Q3"><div class="q-label">Q3 ก.ค.–ก.ย.</div>
+      <div class="q-score" id="qs-Q3">—</div>
+      <div class="q-prog"><div class="q-prog-bar" id="qp-Q3" style="width:0%"></div></div></div>
+    <div class="q-card" id="qc-Q4"><div class="q-label">Q4 ต.ค.–ธ.ค.</div>
+      <div class="q-score" id="qs-Q4">—</div>
+      <div class="q-prog"><div class="q-prog-bar" id="qp-Q4" style="width:0%"></div></div></div>
+  </div>
+
+  <!-- CHECK-IN FORM -->
+  <div class="card" id="ci-card" style="display:none;">
+    <div class="card-title">✏️ <span id="ci-title">บันทึก Q3</span></div>
+    <div style="border:1px solid var(--border);border-radius:8px;overflow:hidden;">
+      <table id="ci-rows" style="width:100%;border-collapse:collapse;table-layout:fixed;">
+        <colgroup>
+          <col style="width:34%">
+          <col style="width:16%">
+          <col style="width:14%">
+          <col style="width:18%">
+          <col style="width:10%">
+          <col style="width:8%">
+        </colgroup>
+        <thead>
+          <tr style="background:var(--light);">
+            <th style="padding:9px 14px;text-align:left;font-size:11px;font-weight:700;color:var(--muted);" data-th="รายการ KPI" data-en="KPI Item">รายการ KPI</th>
+            <th style="padding:9px 8px;text-align:left;font-size:11px;font-weight:700;color:var(--muted);" data-th="เป้าหมาย" data-en="Target">เป้าหมาย</th>
+            <th style="padding:9px 8px;text-align:left;font-size:11px;font-weight:700;color:var(--muted);" data-th="ผลจริง" data-en="Actual">ผลจริง</th>
+            <th style="padding:9px 8px;text-align:left;font-size:11px;font-weight:700;color:var(--muted);" data-th="คะแนน%" data-en="Score%">คะแนน%</th>
+            <th style="padding:9px 8px;text-align:center;font-size:11px;font-weight:700;color:var(--muted);" data-th="น้ำหนัก" data-en="Weight">น้ำหนัก</th>
+            <th style="padding:9px 8px;"></th>
+          </tr>
+        </thead>
+        <tbody id="ci-tbody"></tbody>
+      </table>
+    </div>
+    <div style="padding:10px 12px;background:var(--light);border-top:2px solid var(--border);
+      display:flex;justify-content:space-between;align-items:center;">
+      <div style="font-size:14px;font-weight:700;color:var(--navy);">
+        <span data-th="คะแนนรวม" data-en="Total Score">คะแนนรวม</span>:
+        <span id="ci-total" style="color:var(--blue);font-size:18px;margin-left:8px;">0.00%</span>
+      </div>
+      <button class="btn btn-teal" onclick="saveCI()">💾 <span data-th="บันทึกผล" data-en="Save Results">บันทึกผล</span></button>
+    </div>
+
+    <!-- REMARK SECTION -->
+    <div class="remark-box" id="remark-box" style="display:none;">
+      <div style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:10px;">
+        💬 <span data-th="Manager Remarks" data-en="Manager Remarks">Manager Remarks</span>
+      </div>
+      <div class="remark-grid">
+        <div>
+          <div class="rm-label" data-th="บริบท / เหตุผล / หมายเหตุ" data-en="Context / Remarks">บริบท / เหตุผล / หมายเหตุ</div>
+          <textarea class="rm-input" id="rm-ctx" placeholder="เช่น ผลงาน Q3 ต่ำกว่าเป้าเนื่องจาก project ล่าช้า..."></textarea>
+        </div>
+        <div>
+          <div class="rm-label" data-th="แผนพัฒนาไตรมาสถัดไป" data-en="Dev Focus Next Quarter">แผนพัฒนาไตรมาสถัดไป</div>
+          <textarea class="rm-input" id="rm-dev" placeholder="เช่น เพิ่ม Coaching 1:1 ทุกสัปดาห์, จัด Training เรื่อง X..."></textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     TAB 3 — DASHBOARD
+══════════════════════════════════════════ -->
+<div class="tab-content" id="t3">
+
+  <!-- KPI METRIC CARDS -->
+  <div class="kpi-row">
+    <div class="kpi-box"><div class="kv" id="kv-total">0</div><div class="kl">Total Headcount</div></div>
+    <div class="kpi-box ct"><div class="kv sm" id="kv-avg">—</div><div class="kl">Avg KPI Score (%)</div></div>
+    <div class="kpi-box cg"><div class="kv" id="kv-top">0</div><div class="kl">Top Performer — A</div></div>
+    <div class="kpi-box co"><div class="kv" id="kv-low">0</div><div class="kl">Needs Dev — C/D</div></div>
+    <div class="kpi-box cp"><div class="kv sm" id="kv-dev">—</div><div class="kl">Grade A Deviation</div><div class="kd" id="kd-dev"></div></div>
+    <div class="kpi-box cr"><div class="kv sm" id="kv-skew">—</div><div class="kl">Skewness Index</div><div class="kd" id="kd-skew"></div></div>
+  </div>
+
+  <!-- CALIBRATION INSIGHTS -->
+  <div class="insight-panel" id="insight-panel">
+    <div class="insight-title">🔎 Calibration Insights</div>
+    <div class="insight-body" id="insight-body">กำลังวิเคราะห์...</div>
+    <div class="chips" id="insight-chips"></div>
+  </div>
+
+  <!-- BELL CURVE + DONUT -->
+  <div class="chart-grid-2">
+    <div class="chart-box">
+      <div class="chart-title" style="display:flex;justify-content:space-between;align-items:center;">
+        <span>📉 Bell Curve Distribution</span>
+        <span style="font-size:11px;color:var(--muted);">เส้นประ=Target | ทึบ=Actual</span>
+      </div>
+      <canvas id="ch-bell" style="max-height:210px;"></canvas>
+      <p style="font-size:10px;color:var(--muted);text-align:center;margin-top:8px;font-style:italic;"
+         data-th="อ้างอิงเท่านั้น ไม่บังคับ — เพื่อ Calibration" data-en="Reference only — Not forced. For Calibration.">
+        อ้างอิงเท่านั้น ไม่บังคับ — เพื่อ Calibration
+      </p>
+    </div>
+    <div class="chart-grid-2-r">
+      <div class="chart-box" style="flex:1;">
+        <div class="chart-title">📊 Rating Distribution</div>
+        <canvas id="ch-donut"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- TREND -->
+  <div class="chart-box" style="margin-bottom:16px;">
+    <div class="chart-title">📈 <span data-th="คะแนนเฉลี่ยทีม รายไตรมาส" data-en="Team Avg Score by Quarter">คะแนนเฉลี่ยทีม รายไตรมาส</span></div>
+    <canvas id="ch-trend" style="max-height:150px;"></canvas>
+  </div>
+
+  <!-- HIGH PERFORMANCE TEASER -->
+  <div class="hp-section" id="hp-section" style="display:none;">
+    <div class="hp-header">
+      <div class="hp-title">⭐ High Performance Spotlight
+        <span style="font-size:11px;color:#92400e;font-weight:400;" data-th="จากผลคะแนน KPI ในระบบ" data-en="Based on KPI scores in system">จากผลคะแนน KPI ในระบบ</span>
+      </div>
+      <div>
+        <span class="hp-badge-locked" onclick="showUpgrade('hp')" data-th="🔒 9-Box + Potential Analysis → ใน Bundle ฿1,290" data-en="🔒 9-Box + Potential Analysis → Bundle ฿1,290">
+          🔒 9-Box + Potential Analysis → Bundle ฿1,290
+        </span>
+      </div>
+    </div>
+    <div class="hp-cards" id="hp-cards"></div>
+    <div class="hp-blur-note">
+      <span>💡</span>
+      <div>
+        <strong data-th="ต้องการวิเคราะห์ Potential ควบคู่กับ Performance?" data-en="Want to analyze Potential alongside Performance?">ต้องการวิเคราะห์ Potential ควบคู่กับ Performance?</strong><br>
+        <span style="font-size:11px;" data-th="อัปเกรดเป็น Bundle PE-001 + 9BOX-001 = Performance Intelligence Suite ฿1,290 (ประหยัด ฿240)" data-en="Upgrade to Bundle PE-001 + 9BOX-001 = Performance Intelligence Suite ฿1,290 (save ฿240)">
+          อัปเกรดเป็น Bundle PE-001 + 9BOX-001 = Performance Intelligence Suite ฿1,290 <span style="color:var(--success);">(ประหยัด ฿240)</span>
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCORE TABLE -->
+  <div class="card">
+    <div class="card-title">👥 <span data-th="ตารางสรุปคะแนนรายบุคคล" data-en="Individual Score Summary">ตารางสรุปคะแนนรายบุคคล</span></div>
+    <div class="btn-group no-print">
+      <button class="btn btn-outline" style="font-size:12px;" onclick="showUpgrade('export')">📥 Export Excel <span style="color:var(--muted);font-size:11px;">(Full)</span></button>
+      <button class="btn btn-outline" style="font-size:12px;" onclick="showUpgrade('export')">📄 Export PDF <span style="color:var(--muted);font-size:11px;">(Full)</span></button>
+    </div>
+    <div style="overflow-x:auto;">
+      <table class="emp-table">
+        <thead><tr>
+          <th data-th="ชื่อ" data-en="Name">ชื่อ</th>
+          <th data-th="แผนก" data-en="Dept">แผนก</th>
+          <th>Q1</th><th>Q2</th><th>Q3</th><th>Q4</th>
+          <th data-th="เฉลี่ย" data-en="Avg">เฉลี่ย</th>
+          <th>Rating</th>
+        </tr></thead>
+        <tbody id="dash-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     UPGRADE MODAL
+══════════════════════════════════════════ -->
+<div class="modal-ov hidden" id="upg-modal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeUpgrade()">&times;</button>
+    <div style="text-align:center;font-size:36px;margin-bottom:8px;">🔒</div>
+    <div style="text-align:center;font-size:18px;font-weight:700;color:var(--navy);margin-bottom:6px;"
+         data-th="ต้องการใช้งานเต็มรูปแบบ?" data-en="Upgrade to Full Version?">ต้องการใช้งานเต็มรูปแบบ?</div>
+    <div style="text-align:center;font-size:13px;color:var(--muted);margin-bottom:12px;"
+         data-th="Demo: สูงสุด 3 คน | AI 1 ครั้ง" data-en="Demo: Max 3 employees | 1 AI call">Demo: สูงสุด 3 คน | AI 1 ครั้ง</div>
+    <div class="price-badge-big"><div class="price-big">฿765</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:3px;">Single Company License — ใช้ได้ทั้งบริษัท</div></div>
+    <div class="feat-compare">
+      <div class="feat-col demo"><div class="feat-head">Demo</div>
+        <div class="feat-row">✅ ทดลองฟรี</div>
+        <div class="feat-row">⚠️ 3 พนักงาน</div>
+        <div class="feat-row no">❌ Export Excel/PDF</div>
+        <div class="feat-row no">❌ AI ไม่จำกัด</div>
+        <div class="feat-row no">❌ localStorage save</div>
+      </div>
+      <div class="feat-col full"><div class="feat-head">Full Version</div>
+        <div class="feat-row">✅ ใช้ทันที</div>
+        <div class="feat-row">✅ ไม่จำกัดพนักงาน</div>
+        <div class="feat-row">✅ Export Excel + PDF</div>
+        <div class="feat-row">✅ AI ไม่จำกัด</div>
+        <div class="feat-row">✅ บันทึกข้อมูลถาวร</div>
+      </div>
+    </div>
+    <div class="pay-section">
+      <div style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:10px;">📱 ช่องทางชำระเงิน</div>
+      <div class="pay-grid">
+        <div style="text-align:center;flex-shrink:0;">
+          <img src="SWP001_PromptPay_QR_v2.png" alt="QR" class="qr-img"
+               onerror="this.style.display='none';document.getElementById('qr-fb').style.display='flex'">
+          <div id="qr-fb" class="qr-fb">📱<small>QR</small></div>
+          <div style="font-size:10px;color:var(--muted);margin-top:4px;">สแกน PromptPay</div>
+        </div>
+        <div class="pay-rows">
+          <div class="pay-row"><span class="pay-label">PromptPay</span><span class="pay-val">[PromptPay Number]</span></div>
+          <div class="pay-row"><span class="pay-label">ชื่อบัญชี</span><span class="pay-val">Pattamapanee Thassakhorn</span></div>
+          <div class="pay-row"><span class="pay-label">จำนวน</span><span class="pay-val big">฿765</span></div>
+          <div class="pay-steps">
+            <div class="pay-step">1️⃣ โอน ฿765</div>
+            <div class="pay-step">2️⃣ แคปสลิปส่ง Email</div>
+            <div class="pay-step">3️⃣ รับ Full Version ใน 24 ชม.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <a href="mailto:pattamapanee.tha@gmail.com?subject=ซื้อ PE-001 Full Version ฿765" class="btn-buy">📧 ส่งสลิปทาง Email</a>
+    <button class="btn-demo-cont" onclick="closeUpgrade()">ทดลองต่อ (Demo)</button>
+    <div style="text-align:center;font-size:10px;color:#94a3b8;margin-top:10px;">📧 pattamapanee.tha@gmail.com</div>
+  </div>
+</div>
+
+<!-- REVISION MODAL -->
+<div class="modal-ov hidden" id="rev-modal">
+  <div class="modal-box modal-sm">
+    <button class="modal-close" onclick="closeRevModal()">&times;</button>
+    <div style="font-size:17px;font-weight:700;color:var(--navy);margin-bottom:14px;">📝 Goal Revision Request</div>
+    <div class="fg" style="margin-bottom:12px;">
+      <label data-th="เหตุผลที่ขอแก้ไข KPI" data-en="Reason for KPI Revision">เหตุผลที่ขอแก้ไข KPI</label>
+      <textarea id="rev-reason" class="rm-input" style="min-height:90px;"
+        placeholder="เช่น ทิศทางบริษัทเปลี่ยน, Market conditions เปลี่ยน, Project scope เปลี่ยน..."></textarea>
+    </div>
+    <div class="fg" style="margin-bottom:14px;">
+      <label data-th="ผู้อนุมัติ (Manager/HR)" data-en="Approver">ผู้อนุมัติ</label>
+      <input id="rev-approver" placeholder="ชื่อ Manager / HR ที่อนุมัติ">
+    </div>
+    <div style="display:flex;gap:10px;">
+      <button class="btn btn-teal" onclick="submitRevision()" style="flex:1;">✅ บันทึก Revision</button>
+      <button class="btn btn-outline" onclick="closeRevModal()">ยกเลิก</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-wrap" id="toast-wrap"></div>
+
+<div class="app-footer">
+  © <span id="fy">2026</span> HR Digital Products by Pattamapanee Thassakhorn &nbsp;|&nbsp;
+  pattamapanee.tha@gmail.com &nbsp;|&nbsp; Single Company License — ห้าม resale, rebrand, แจกจ่ายต่อ
+</div>
+
+<script>
+// ── CONFIG ──────────────────────────────────
+const CFG = {
+  maxEmp: 3, maxAI: 1, autoPopup: 8000,
+  lsKey: 'pe001_v21',
+  price: '฿765', email: 'pattamapanee.tha@gmail.com'
+};
+
+// ── STATE ────────────────────────────────────
+let employees = [];
+let aiUsed = 0;
+let lang = 'th';
+let donutChart = null, trendChart = null, bellChart = null;
+
+// ── PERSIST: save/load localStorage ──────────
+function saveState() {
+  try {
+    localStorage.setItem(CFG.lsKey, JSON.stringify({ employees, aiUsed, lang }));
+  } catch(e) {}
+}
+function loadState() {
+  try {
+    const d = JSON.parse(localStorage.getItem(CFG.lsKey) || 'null');
+    if (d) { employees = d.employees || []; aiUsed = d.aiUsed || 0; lang = d.lang || 'th'; }
+  } catch(e) {}
+}
+function resetState() {
+  if (!confirm('ล้างข้อมูลทั้งหมดและเริ่มใหม่?')) return;
+  localStorage.removeItem(CFG.lsKey);
+  employees = []; aiUsed = 0;
+  refreshAll();
+  showToast('ล้างข้อมูลแล้ว', 'ok');
+}
+
+// ── RATING ───────────────────────────────────
+function toRating(s) {
+  if (s >= 90) return 'A'; if (s >= 75) return 'B';
+  if (s >= 60) return 'C'; return 'D';
+}
+function ratingPill(r) {
+  if (!r) return '<span class="pill pill-none">—</span>';
+  const lbl = {A:'ดีเยี่ยม',B:'ดี',C:'พอใช้',D:'ต้องพัฒนา'};
+  return '<span class="pill pill-'+r+'">' + r + ' ' + (lang==='th'?lbl[r]:r) + '</span>';
+}
+
+// ── LANG ─────────────────────────────────────
+const LL = {
+  th:{ 'hdr-sub':'ระบบตั้งเป้าหมาย KPI และติดตามผลรายไตรมาส | HR Digital Products',
+       'tb1':'ตั้ง KPI','tb2':'ติดตามผล','tb3':'Dashboard' },
+  en:{ 'hdr-sub':'KPI Goal Setting & Quarterly Performance Tracking | HR Digital Products',
+       'tb1':'Set KPI','tb2':'Track Results','tb3':'Dashboard' }
+};
+function toggleLang() {
+  lang = lang === 'th' ? 'en' : 'th';
+  Object.keys(LL[lang]).forEach(k => { const e=document.getElementById(k); if(e) e.textContent=LL[lang][k]; });
+  document.querySelectorAll('[data-th]').forEach(el => { el.textContent = lang==='th'?el.dataset.th:el.dataset.en; });
+  saveState();
+}
+
+// ── TABS ─────────────────────────────────────
+function switchTab(id) {
+  document.querySelectorAll('.tab-content').forEach(e => e.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.getElementById('tabBtn-'+id).classList.add('active');
+  if (id==='t3') renderDash();
+  if (id==='t2') refreshTrackSel();
+}
+
+// ── EMPLOYEE ──────────────────────────────────
+function addEmp() {
+  // Count non-sample employees (sample ids > now-based, so check flag)
+  const realCount = employees.filter(e => !e._isSample).length;
+  if (realCount >= CFG.maxEmp) { showUpgrade('limit'); return; }
+  const name = document.getElementById('inp-name').value.trim();
+  if (!name) { showToast('กรุณาใส่ชื่อพนักงาน','warn'); return; }
+  const emp = {
+    id: Date.now(),
+    name, pos: document.getElementById('inp-pos').value.trim(),
+    dept: document.getElementById('inp-dept').value.trim(),
+    year: document.getElementById('inp-year').value || '2026',
+    kpis: [], quarters: {}, orgGoals: { comp:'', dept:'' }, revisions: []
+  };
+  employees.push(emp); saveState();
+  showToast('เพิ่ม ' + name + ' แล้ว', 'ok');
+  ['inp-name','inp-pos','inp-dept'].forEach(id => document.getElementById(id).value='');
+  refreshAll();
+}
+function delEmp(id) {
+  employees = employees.filter(e => e.id !== id); saveState(); refreshAll();
+  showToast('ลบพนักงานแล้ว');
+}
+function calcAvg(emp) {
+  const sc = ['Q1','Q2','Q3','Q4'].map(q => emp.quarters[q]).filter(s => s != null);
+  return sc.length ? sc.reduce((a,b)=>a+b,0)/sc.length : null;
+}
+
+function refreshAll() {
+  const n = employees.length;
+  const realN = employees.filter(e=>!e._isSample).length; document.getElementById('emp-badge').textContent = (n<=5&&employees.every(e=>e._isSample)?'5 ตัวอย่าง (Sample)':realN+'/3 คน (Demo)');
+  document.getElementById('kpi-card').style.display = n ? 'block' : 'none';
+  document.getElementById('emp-table-card').style.display = n ? 'block' : 'none';
+
+  const sel = document.getElementById('sel-emp');
+  const cur = sel.value;
+  sel.innerHTML = employees.map(e => '<option value="'+e.id+'" '+(e.id==cur?'selected':'')+'>'+e.name+'</option>').join('');
+  if (n) renderKpiSetup();
+  renderEmpTable();
+  refreshTrackSel();
+}
+
+function renderEmpTable() {
+  const tb = document.getElementById('emp-tbody');
+  tb.innerHTML = employees.map((e,i) => {
+    const avg = calcAvg(e); const r = avg!==null ? toRating(avg) : null;
+    return '<tr><td>'+(i+1)+'</td><td><strong>'+e.name+'</strong></td>' +
+      '<td>'+(e.pos||'—')+'</td><td>'+(e.dept||'—')+'</td>' +
+      '<td>'+e.kpis.length+' KPI</td>' +
+      '<td>'+(avg!==null?avg.toFixed(1)+'%':'—')+'</td>' +
+      '<td>'+ratingPill(r)+'</td>' +
+      '<td><button class="btn-sm btn-del" onclick="delEmp('+e.id+')">🗑️</button></td></tr>';
+  }).join('') || '<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:16px;">ยังไม่มีพนักงาน</td></tr>';
+}
+
+// ── KPI SETUP ──────────────────────────────────
+function renderKpiSetup() {
+  const sel = document.getElementById('sel-emp');
+  const emp = employees.find(e => e.id == sel.value); if (!emp) return;
+  // Load org goals
+  document.getElementById('inp-comp-goal').value = emp.orgGoals.comp || '';
+  document.getElementById('inp-dept-goal').value = emp.orgGoals.dept || '';
+  document.getElementById('ai-role').value = emp.pos || '';
+  renderKpiRows(emp);
+  renderRevHistory(emp);
+}
+function saveOrgGoals() {
+  const emp = getCurEmp(); if (!emp) return;
+  emp.orgGoals.comp = document.getElementById('inp-comp-goal').value;
+  emp.orgGoals.dept = document.getElementById('inp-dept-goal').value;
+  saveState();
+}
+function getCurEmp() { return employees.find(e => e.id == document.getElementById('sel-emp').value); }
+
+function renderKpiRows(emp) {
+  document.getElementById('kpi-rows').innerHTML = emp.kpis.map((k,i) => {
+    const noteOpen = k._noteOpen ? 'open' : '';
+    const activeQ = k._activeCoachQ || 'Q1';
+    return (
+      '<div class="kpi-row-item">' +
+      '<input type="text" value="'+k.name+'" onchange="updKpi('+i+',\'name\',this.value)" placeholder="ชื่อ KPI">' +
+      '<input type="text" value="'+k.target+'" onchange="updKpi('+i+',\'target\',this.value)" placeholder="เป้า">' +
+      '<input type="number" value="'+k.weight+'" onchange="updKpi('+i+',\'weight\',this.value)" min="0" max="100">' +
+      '<input type="text" value="'+(k.unit||'')+'" onchange="updKpi('+i+',\'unit\',this.value)" placeholder="%">' +
+      '<select onchange="updKpi('+i+',\'ktype\',this.value)">' +
+      '<option value="higher"'+(k.ktype==='higher'?' selected':'')+'>สูง=ดี</option>' +
+      '<option value="lower"'+(k.ktype==='lower'?' selected':'')+'>ต่ำ=ดี</option>' +
+      '</select>' +
+      '<button class="btn-sm btn-del" onclick="rmKpi('+i+')">🗑️</button>' +
+      '</div>' +
+      '<div class="kpi-note-wrap">' +
+      '<div class="kpi-note-toggle" onclick="toggleKpiNote('+i+')">' +
+      '<span id="knt-arrow-'+i+'">'+(noteOpen?'▼':'▶')+'</span> ' +
+      '<span style="color:var(--purple)">💬 KPI Note</span>' +
+      (k.kpi_note ? ' <span style="color:var(--success);font-size:10px;">● มีบันทึก</span>' : ' <span style="color:var(--border);font-size:10px;">○ เพิ่ม context / assumption / exception</span>') +
+      '</div>' +
+      '<div class="kpi-note-body '+noteOpen+'" id="knb-'+i+'">' +
+      '<div class="kpi-note-label">📌 KPI Context / Assumption / Exception</div>' +
+      '<textarea class="kpi-note-ta" id="kni-'+i+'" onchange="updKpi('+i+',\'kpi_note\',this.value)" placeholder="เช่น: Target นี้มาจาก Industry Benchmark 2025 / ถ้า market ตก อนุโลมให้ถึง X / exception กรณี...">' +
+      (k.kpi_note||'') +
+      '</textarea>' +
+      '<div style="margin-top:8px;"><div class="kpi-note-label">🗓️ Coaching Note รายไตรมาส</div>' +
+      '<div class="coaching-tabs">' +
+      ['Q1','Q2','Q3','Q4'].map(q =>
+        '<button class="ctab'+(activeQ===q?' active':'')+'" onclick="switchCoachQ('+i+',\''+q+'\')">' +q+ '</button>'
+      ).join('') +
+      '</div>' +
+      ['Q1','Q2','Q3','Q4'].map(q =>
+        '<div class="coaching-pane'+(activeQ===q?' open':'')+'" id="cp-'+i+'-'+q+'">' +
+        '<textarea class="kpi-note-ta" onchange="updCoachNote('+i+',\''+q+'\',this.value)" placeholder="Coaching note สำหรับ '+q+'...">' +
+        ((k.coaching_notes&&k.coaching_notes[q])||'') +
+        '</textarea></div>'
+      ).join('') +
+      '</div>' +
+      '</div></div>'
+    );
+  }).join('');
+  calcWeight(emp);
+}
+function toggleKpiNote(i) {
+  const body = document.getElementById('knb-'+i);
+  const arrow = document.getElementById('knt-arrow-'+i);
+  const emp = getCurEmp(); if (!emp||!emp.kpis[i]) return;
+  emp.kpis[i]._noteOpen = !emp.kpis[i]._noteOpen;
+  body.classList.toggle('open', emp.kpis[i]._noteOpen);
+  arrow.textContent = emp.kpis[i]._noteOpen ? '▼' : '▶';
+}
+function switchCoachQ(i, q) {
+  const emp = getCurEmp(); if (!emp||!emp.kpis[i]) return;
+  emp.kpis[i]._activeCoachQ = q;
+  ['Q1','Q2','Q3','Q4'].forEach(qi => {
+    const pane = document.getElementById('cp-'+i+'-'+qi);
+    if (pane) pane.className = 'coaching-pane' + (qi===q?' open':'');
+  });
+  document.querySelectorAll('.coaching-tabs .ctab').forEach((btn,bi) => {
+    if (Math.floor(bi/4)===i) btn.className = 'ctab' + (btn.textContent===q?' active':'');
+  });
+  // Re-render just the tabs
+  renderKpiRows(emp);
+}
+function updCoachNote(i, q, v) {
+  const emp = getCurEmp(); if (!emp||!emp.kpis[i]) return;
+  if (!emp.kpis[i].coaching_notes) emp.kpis[i].coaching_notes = {};
+  emp.kpis[i].coaching_notes[q] = v;
+  saveState();
+}
+function updKpi(i,f,v) {
+  const emp = getCurEmp(); if (!emp) return;
+  emp.kpis[i][f] = f==='weight' ? parseFloat(v)||0 : v;
+  calcWeight(emp);
+}
+function rmKpi(i) {
+  const emp = getCurEmp(); if (!emp) return;
+  emp.kpis.splice(i,1); renderKpiRows(emp);
+}
+function addKpiRow() {
+  const emp = getCurEmp(); if (!emp) return;
+  emp.kpis.push({name:'',target:'',weight:0,unit:'%',ktype:'higher'});
+  renderKpiRows(emp);
+}
+function calcWeight(emp) {
+  const tot = emp.kpis.reduce((s,k)=>s+(parseFloat(k.weight)||0),0);
+  const el = document.getElementById('wt-sum');
+  const wrap = document.getElementById('wt-total');
+  const st = document.getElementById('wt-status');
+  el.textContent = tot.toFixed(0)+'%';
+  if (Math.abs(tot-100)<0.5) { wrap.className='wt-total ok'; st.textContent='✅ ครบ 100%'; }
+  else if (tot>100) { wrap.className='wt-total bad'; st.textContent='⚠️ เกิน!'; }
+  else { wrap.className='wt-total'; st.textContent='⚠️ ยังไม่ครบ 100%'; }
+}
+function saveKpis() {
+  const emp = getCurEmp(); if (!emp) return;
+  const tot = emp.kpis.reduce((s,k)=>s+(parseFloat(k.weight)||0),0);
+  if (Math.abs(tot-100)>1) { showToast('น้ำหนักรวมต้องเท่ากับ 100%','warn'); return; }
+  saveState(); showToast('บันทึก KPI สำเร็จ','ok'); renderEmpTable();
+}
+
+// ── REVISION LOG ──────────────────────────────
+function showRevModal() { document.getElementById('rev-modal').classList.remove('hidden'); }
+function closeRevModal() { document.getElementById('rev-modal').classList.add('hidden'); }
+function submitRevision() {
+  const emp = getCurEmp(); if (!emp) return;
+  const reason = document.getElementById('rev-reason').value.trim();
+  const approver = document.getElementById('rev-approver').value.trim();
+  if (!reason) { showToast('กรุณาใส่เหตุผล','warn'); return; }
+  if (!emp.revisions) emp.revisions = [];
+  emp.revisions.push({
+    ts: new Date().toLocaleString('en-GB'),
+    reason, approver: approver || '—',
+    kpis_snapshot: emp.kpis.length + ' KPI items'
+  });
+  saveState(); closeRevModal();
+  document.getElementById('rev-reason').value = '';
+  document.getElementById('rev-approver').value = '';
+  showToast('บันทึก Goal Revision แล้ว','ok');
+  renderRevHistory(emp);
+}
+function renderRevHistory(emp) {
+  const box = document.getElementById('rev-hist');
+  if (!emp.revisions || !emp.revisions.length) { box.style.display='none'; return; }
+  box.style.display = 'block';
+  box.innerHTML = '<div class="rev-history"><div style="font-size:12px;font-weight:700;color:#92400e;margin-bottom:6px;">📋 Goal Revision History</div>' +
+    emp.revisions.map(r =>
+      '<div class="rev-item">🕐 <strong>'+r.ts+'</strong> | Approved by: '+r.approver+'<br><span style="color:var(--muted);">'+r.reason+'</span></div>'
+    ).join('') + '</div>';
+}
+
+// ── AI SMART KPI ──────────────────────────────
+async function genAI() {
+  if (aiUsed >= CFG.maxAI) { showUpgrade('ai'); return; }
+  const role = document.getElementById('ai-role').value.trim();
+  const ind  = document.getElementById('ai-ind').value.trim();
+  const comp = document.getElementById('inp-comp-goal').value.trim();
+  const dept = document.getElementById('inp-dept-goal').value.trim();
+  if (!role) { showToast('กรุณาใส่ตำแหน่งงาน','warn'); return; }
+  aiUsed++; saveState();
+  document.getElementById('ai-spin').style.display='flex';
+  document.getElementById('ai-out').style.display='none';
+  const prompt =
+    'คุณเป็น HR Expert เชี่ยวชาญ SMART KPI\n' +
+    'ตำแหน่ง: ' + role + (ind?' อุตสาหกรรม: '+ind:'') + '\n' +
+    (comp?'Company Goal: '+comp+'\n':'') +
+    (dept?'Dept Goal: '+dept+'\n':'') +
+    'แนะนำ KPI 5 ตัวที่ Cascade จาก Org Goal โดยตอบ JSON array เท่านั้น ห้าม markdown:\n' +
+    '[{"name":"","target":"","unit":"","weight":20,"ktype":"higher","smart_note":"","cascade_from":"Company/Dept Goal"}]' +
+    '\nweight รวม=100. ktype: higher=ยิ่งสูงยิ่งดี, lower=ยิ่งต่ำยิ่งดี';
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ model:'claude-sonnet-4-6', max_tokens:1000,
+        messages:[{role:'user',content:prompt}] })
+    });
+    const data = await res.json();
+    const txt = data.content.map(c=>c.text||'').join('');
+    const kpis = JSON.parse(txt.replace(/```json|```/g,'').trim());
+    const out = document.getElementById('ai-out');
+    out.innerHTML = '<div class="ai-result-box">' +
+      '<div style="font-size:12px;font-weight:700;color:var(--purple);margin-bottom:8px;">✨ AI แนะนำ KPI Cascade สำหรับ '+role+'</div>' +
+      '<table style="width:100%;border-collapse:collapse;font-size:12px;">' +
+      '<tr style="background:#f5f3ff;"><th style="padding:5px 7px;text-align:left;">KPI</th><th>เป้า</th><th>น้ำหนัก</th><th>Cascade จาก</th></tr>' +
+      kpis.map(k=>'<tr style="border-bottom:1px solid #e9d5ff;"><td style="padding:5px 7px;"><strong>'+k.name+'</strong><br><span style="color:var(--muted);font-size:11px;">'+k.smart_note+'</span></td><td style="text-align:center;">'+k.target+' '+k.unit+'</td><td style="text-align:center;"><span class="wt-badge">'+k.weight+'%</span></td><td style="font-size:11px;color:var(--muted);">'+k.cascade_from+'</td></tr>').join('') +
+      '</table>' +
+      '<button class="btn btn-teal" style="margin-top:10px;font-size:12px;" onclick="applyAI()">✅ ใช้ KPI เหล่านี้</button>' +
+      '</div>';
+    out._kpis = kpis; out.style.display='block';
+    showToast('AI สร้าง KPI สำเร็จ','ok');
+  } catch(e) {
+    document.getElementById('ai-out').innerHTML='<div style="color:var(--danger);font-size:13px;">Error: '+e.message+'</div>';
+    document.getElementById('ai-out').style.display='block'; aiUsed--;
+  }
+  document.getElementById('ai-spin').style.display='none';
+}
+function applyAI() {
+  const out = document.getElementById('ai-out');
+  const kpis = out._kpis; if (!kpis) return;
+  const emp = getCurEmp(); if (!emp) return;
+  emp.kpis = kpis.map(k=>({name:k.name,target:k.target,weight:k.weight,unit:k.unit||'%',ktype:k.ktype||'higher'}));
+  renderKpiRows(emp); saveState(); showToast('นำ KPI ไปใช้แล้ว','ok');
+}
+
+// ── DOWNLOAD TEMPLATE ─────────────────────────
+function dlTemplate() {
+  const h = ['ชื่อ-นามสกุล','ตำแหน่ง','แผนก','ปีประเมิน','KPI1_ชื่อ','KPI1_เป้าหมาย','KPI1_น้ำหนัก%','KPI1_หน่วย','KPI1_ประเภท','KPI2_ชื่อ','KPI2_เป้าหมาย','KPI2_น้ำหนัก%','KPI2_หน่วย','KPI2_ประเภท','KPI3_ชื่อ','KPI3_เป้าหมาย','KPI3_น้ำหนัก%','KPI3_หน่วย','KPI3_ประเภท'];
+  const ex = ['สมชาย ใจดี','HR Manager','HR','2026','Recruit Fill Rate','90','30','%','higher','Engagement Score','80','25','%','higher','Turnover Rate','5','20','%','lower'];
+  const bom = '\uFEFF';
+  const csv = [h.join(','),ex.join(',')].join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([bom+csv],{type:'text/csv;charset=utf-8;'}));
+  a.download = 'PE001_KPI_Template.csv'; a.click();
+  showToast('ดาวน์โหลด Template แล้ว','ok');
+}
+
+// ── IMPORT EXCEL ──────────────────────────────
+function importXL(input) {
+  const file = input.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      let added = 0;
+      if (file.name.endsWith('.csv')) {
+        const txt = e.target.result.replace(/\r/g,'');
+        const rows = txt.trim().split('\n').slice(1);
+        rows.forEach(row => {
+          const realEmp = employees.filter(e=>!e._isSample).length; if (realEmp >= CFG.maxEmp) return;
+          const c = row.split(',').map(x=>x.replace(/^"|"$/g,'').trim());
+          if (!c[0]) return;
+          const kpis = [];
+          for (let i=4;i<c.length;i+=5) {
+            if (c[i]&&c[i+1]) kpis.push({name:c[i],target:c[i+1],weight:parseFloat(c[i+2])||0,unit:c[i+3]||'%',ktype:c[i+4]||'higher'});
+          }
+          employees.push({id:Date.now()+Math.random(),name:c[0],pos:c[1]||'',dept:c[2]||'',year:c[3]||'2026',kpis,quarters:{},orgGoals:{comp:'',dept:''},revisions:[]});
+          added++;
+        });
+      } else {
+        if (typeof XLSX==='undefined') { showToast('SheetJS not loaded','err'); return; }
+        const wb = XLSX.read(new Uint8Array(e.target.result),{type:'array'});
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        const data = XLSX.utils.sheet_to_json(ws,{header:1});
+        data.slice(1).forEach(c => {
+          if (employees.length >= CFG.maxEmp) return;
+          if (!c[0]) return;
+          const kpis = [];
+          for (let i=4;i<c.length;i+=5) {
+            if (c[i]&&c[i+1]) kpis.push({name:String(c[i]),target:String(c[i+1]),weight:parseFloat(c[i+2])||0,unit:String(c[i+3]||'%'),ktype:String(c[i+4]||'higher')});
+          }
+          employees.push({id:Date.now()+Math.random(),name:String(c[0]),pos:String(c[1]||''),dept:String(c[2]||''),year:String(c[3]||'2026'),kpis,quarters:{},orgGoals:{comp:'',dept:''},revisions:[]});
+          added++;
+        });
+      }
+      saveState(); refreshAll();
+      const ok = document.getElementById('ul-ok');
+      document.getElementById('ul-msg').textContent='นำเข้าสำเร็จ '+added+' คน';
+      ok.style.display='block'; setTimeout(()=>ok.style.display='none',4000);
+      if (employees.length>=CFG.maxEmp) showUpgrade('limit');
+      showToast('นำเข้า '+added+' คน','ok');
+    } catch(err) { showToast('อ่านไฟล์ไม่ได้: '+err.message,'err'); }
+  };
+  if (file.name.endsWith('.csv')) reader.readAsText(file,'UTF-8');
+  else reader.readAsArrayBuffer(file);
+  input.value='';
+}
+
+// ── QUARTERLY TRACKING ────────────────────────
+function refreshTrackSel() {
+  const sel = document.getElementById('sel-trk');
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">-- เลือก --</option>' +
+    employees.map(e=>'<option value="'+e.id+'" '+(e.id==cur?'selected':'')+'>'+e.name+'</option>').join('');
+  if (cur) renderCI();
+}
+
+function renderCI() {
+  const empId = document.getElementById('sel-trk').value;
+  const q = document.getElementById('sel-q').value;
+  const emp = employees.find(e=>e.id==empId);
+  const hasKpi = emp && emp.kpis.length>0;
+
+  document.getElementById('q-cards').style.display = emp?'grid':'none';
+  document.getElementById('ci-card').style.display = hasKpi?'block':'none';
+  document.getElementById('remark-box').style.display = hasKpi?'block':'none';
+  document.getElementById('bias-panel').style.display = emp?'block':'none';
+
+  if (!emp) return;
+
+  // Update Q cards
+  ['Q1','Q2','Q3','Q4'].forEach(qi=>{
+    const s=emp.quarters[qi];
+    document.getElementById('qs-'+qi).textContent = s!=null?s.toFixed(1)+'%':'—';
+    document.getElementById('qp-'+qi).style.width = s!=null?Math.min(s,100)+'%':'0%';
+    document.getElementById('qp-'+qi).style.background = s!=null?(s>=90?'var(--success)':s>=75?'var(--blue)':s>=60?'var(--warn)':'var(--danger)'):'var(--blue)';
+    document.getElementById('qc-'+qi).classList.toggle('active-q',qi===q);
+  });
+
+  document.getElementById('ci-title').textContent = 'บันทึก '+q+' — '+emp.name;
+
+  // Pre-fill remarks
+  document.getElementById('rm-ctx').value = emp.quarters['_ctx_'+q]||'';
+  document.getElementById('rm-dev').value = emp.quarters['_dev_'+q]||'';
+
+  if (!hasKpi) return;
+
+  // Render KPI rows
+  const saved = emp.quarters['_data_'+q]||{};
+  const ciCommentKey = '_cicomment_'+q;
+  const ciComments = emp.quarters[ciCommentKey] || {};
+
+  document.getElementById('ci-tbody').innerHTML = emp.kpis.map((k,i) => {
+    const act      = saved[i] != null ? saved[i] : '';
+    const sc       = kpiScore(k, act);
+    const pct      = sc !== null ? Math.min(sc, 100) : 0;
+    const barColor = sc === null ? '#e2e8f0' : sc >= 90 ? '#16a34a' : sc >= 75 ? '#2563EB' : sc >= 60 ? '#d97706' : '#dc2626';
+    const hasNote  = !!ciComments[i];
+    const pillCls  = hasNote ? 'ci-toggle-pill has-note' : 'ci-toggle-pill';
+    const pillTxt  = hasNote ? '● มี Note' : '+ เพิ่ม Note';
+    const coachTxt = k.coaching_notes && k.coaching_notes[q] ? k.coaching_notes[q] : '';
+
+    // ── Main data row (tr) ──
+    const mainRow =
+      '<tr style="border-top:1px solid var(--border);">' +
+        '<td style="padding:10px 14px;vertical-align:top;">' +
+          '<div style="font-size:13px;font-weight:700;color:var(--navy);">' + k.name + '</div>' +
+          '<div style="font-size:11px;color:var(--muted);margin-top:2px;">เป้า: ' + k.target + ' ' + k.unit + '</div>' +
+          (k.kpi_note ? '<div style="margin-top:5px;display:inline-block;background:#ede9fe;color:#6d28d9;padding:2px 8px;border-radius:10px;font-size:10px;line-height:1.4;">📌 ' + k.kpi_note.slice(0,50) + (k.kpi_note.length > 50 ? '...' : '') + '</div>' : '') +
+        '</td>' +
+        '<td style="padding:10px 8px;font-size:13px;vertical-align:top;">' + k.target + ' ' + k.unit + '</td>' +
+        '<td style="padding:10px 8px;vertical-align:top;">' +
+          '<input type="number" step="any" value="' + act + '" oninput="updActual(' + i + ',this.value)"' +
+          ' style="width:80px;font-size:13px;border:1px solid var(--border);border-radius:6px;padding:5px 7px;">' +
+        '</td>' +
+        '<td style="padding:10px 8px;vertical-align:top;">' +
+          '<div id="sc-' + i + '" style="font-size:13px;font-weight:700;color:#2563EB;">' + (sc !== null ? sc.toFixed(1) + '%' : '—') + '</div>' +
+          '<div style="height:4px;background:#e2e8f0;border-radius:2px;margin-top:5px;width:80px;overflow:hidden;">' +
+            '<div id="scbar-' + i + '" style="height:100%;border-radius:2px;transition:width .4s;width:' + pct + '%;background:' + barColor + ';"></div>' +
+          '</div>' +
+        '</td>' +
+        '<td style="padding:10px 8px;text-align:center;vertical-align:top;">' +
+          '<span class="wt-badge">' + k.weight + '%</span>' +
+        '</td>' +
+        '<td style="padding:10px 8px;text-align:center;vertical-align:top;">' +
+          '<button class="' + pillCls + '" id="cin-pill-' + i + '" onclick="toggleCiNote(' + i + ')" style="white-space:nowrap;cursor:pointer;border:none;">' + pillTxt + '</button>' +
+        '</td>' +
+      '</tr>';
+
+    // ── Comment sub-row (tr colspan=6) — hidden by default ──
+    const contextHtml = k.kpi_note
+      ? '<div style="background:#faf5ff;border:1px solid #e9d5ff;border-radius:7px;padding:7px 11px;font-size:12px;color:#6d28d9;margin-bottom:10px;"><strong>📌 KPI Context:</strong> ' + k.kpi_note + '</div>'
+      : '';
+    const coachHtml = coachTxt
+      ? '<div style="background:#f5f3ff;border:1px solid #ddd6fe;border-radius:7px;padding:9px 11px;font-size:12px;color:var(--text);line-height:1.6;">' + coachTxt + '</div>'
+      : '<div style="color:var(--muted);font-style:italic;font-size:12px;">ยังไม่มี Coaching Note สำหรับ ' + q + ' (เพิ่มได้ที่ Tab ตั้ง KPI)</div>';
+
+    const commentRow =
+      '<tr id="cinb-' + i + '" style="display:none;background:#f8faff;">' +
+        '<td colspan="6" style="padding:12px 14px;border-top:1px dashed #c7d2fe;">' +
+          contextHtml +
+          '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">' +
+            '<div>' +
+              '<div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px;">💬 Comment / ข้อสังเกต — ' + q + '</div>' +
+              '<textarea id="cint-' + i + '" oninput="saveCiComment(' + i + ')"' +
+              ' style="font-family:Arial;font-size:12px;border:1px solid var(--border);border-radius:6px;padding:7px 10px;resize:vertical;min-height:60px;outline:none;width:100%;"' +
+              ' placeholder="เช่น KPI นี้ทำได้ดีเพราะ... / ต้องปรับ approach... / context พิเศษ...">' + (ciComments[i] || '') + '</textarea>' +
+            '</div>' +
+            '<div>' +
+              '<div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px;">📋 Coaching Note (จาก Tab ตั้ง KPI)</div>' +
+              coachHtml +
+            '</div>' +
+          '</div>' +
+        '</td>' +
+      '</tr>';
+
+    return mainRow + commentRow;
+  }).join('');
+
+  updateCITotal();
+  updateBiasMirror(emp, q);
+}
+
+function kpiScore(k,actual) {
+  if (actual===''||actual==null) return null;
+  const a=parseFloat(actual), t=parseFloat(k.target);
+  if (isNaN(a)||isNaN(t)||t===0) return null;
+  return Math.min(100, k.ktype==='lower' ? (t/a)*100 : (a/t)*100);
+}
+function updActual(i,v) {
+  const empId=document.getElementById('sel-trk').value;
+  const emp=employees.find(e=>e.id==empId); if(!emp) return;
+  const sc=kpiScore(emp.kpis[i],v);
+  const el = document.getElementById('sc-'+i);
+  if (el) { el.textContent = sc!==null ? sc.toFixed(1)+'%' : '—'; el.style.color = sc===null?'var(--muted)':sc>=90?'#16a34a':sc>=75?'#2563EB':sc>=60?'#d97706':'#dc2626'; }
+  const bar = document.getElementById('scbar-'+i);
+  if (bar) { bar.style.width=(sc!==null?Math.min(sc,100):0)+'%'; bar.style.background=sc===null?'#e2e8f0':sc>=90?'#16a34a':sc>=75?'#2563EB':sc>=60?'#d97706':'#dc2626'; }
+  updateCITotal();
+  updateBiasMirror(emp, document.getElementById('sel-q').value);
+}
+function toggleCiNote(i) {
+  const tr   = document.getElementById('cinb-'+i);
+  const pill = document.getElementById('cin-pill-'+i);
+  if (!tr) return;
+  const isOpen = tr.style.display === 'table-row';
+  tr.style.display = isOpen ? 'none' : 'table-row';
+  if (pill && !isOpen) {
+    // Keep pill text, just add collapse indicator
+    const base = pill.classList.contains('has-note') ? '● มี Note' : '+ เพิ่ม Note';
+    pill.textContent = base + ' ▲';
+  } else if (pill) {
+    const base = pill.classList.contains('has-note') ? '● มี Note' : '+ เพิ่ม Note';
+    pill.textContent = base;
+  }
+}
+function saveCiComment(i) {
+  const empId=document.getElementById('sel-trk').value;
+  const q=document.getElementById('sel-q').value;
+  const emp=employees.find(e=>e.id==empId); if(!emp) return;
+  const key='_cicomment_'+q;
+  if(!emp.quarters[key]) emp.quarters[key]={};
+  const ta=document.getElementById('cint-'+i);
+  const val=ta?ta.value:'';
+  emp.quarters[key][i]=val;
+  // Update pill indicator live
+  const pill=document.getElementById('cin-pill-'+i);
+  if(pill){
+    pill.className=val ? 'ci-toggle-pill has-note' : 'ci-toggle-pill';
+    pill.textContent=val ? '● มี Note' : '+ เพิ่ม Note';
+  }
+  saveState();
+}
+function updateCITotal() {
+  const empId=document.getElementById('sel-trk').value;
+  const emp=employees.find(e=>e.id==empId); if(!emp) return;
+  let ws=0,tw=0;
+  emp.kpis.forEach((k,i)=>{
+    const inp=document.getElementById('ci-tbody') ? document.querySelector('#ci-tbody tr:nth-child('+(i*2+1)+') input') : null;
+    if(!inp) return;
+    const sc=kpiScore(k,inp.value);
+    if(sc!==null){ws+=sc*(parseFloat(k.weight)||0);tw+=parseFloat(k.weight)||0;}
+  });
+  document.getElementById('ci-total').textContent=(tw>0?ws/tw:0).toFixed(2)+'%';
+}
+
+// ── MANAGER BIAS MIRROR ──────────────────────
+function updateBiasMirror(emp, q) {
+  const panel = document.getElementById('bias-panel');
+  const scores = ['Q1','Q2','Q3','Q4'].map(qi=>emp.quarters[qi]).filter(s=>s!=null);
+  if (!scores.length) {
+    panel.style.display='none'; return;
+  }
+  panel.style.display='block';
+  const avg = scores.reduce((a,b)=>a+b,0)/scores.length;
+  // Bias: compare to neutral expectation (75% = B range)
+  const bias = avg - 75; // positive = lenient, negative = strict
+  const biasAbs = Math.abs(bias);
+  const biasType = bias > 10 ? 'Leniency Bias (ให้คะแนนสูง)' : bias < -10 ? 'Severity Bias (ให้คะแนนต่ำ)' : 'สมดุลดี ✅';
+  const pct = Math.min(100,Math.max(0,(avg/100)*100));
+  const fill = document.getElementById('bias-fill');
+  fill.style.width=pct+'%';
+  fill.style.background=biasAbs>15?'var(--danger)':biasAbs>8?'var(--warn)':'var(--success)';
+  document.getElementById('bias-badge').textContent=biasType;
+  document.getElementById('bias-badge').className='badge '+(biasAbs>10?'badge-warn':'badge-ok');
+  document.getElementById('bias-text').textContent=
+    'คะแนนเฉลี่ยที่ให้: '+avg.toFixed(1)+'% — '+
+    (biasAbs>10?'ควรพิจารณา Calibration เพื่อความยุติธรรม':'Pattern การให้คะแนนอยู่ในช่วงปกติ');
+}
+
+function saveCI() {
+  const empId=document.getElementById('sel-trk').value;
+  const q=document.getElementById('sel-q').value;
+  const emp=employees.find(e=>e.id==empId); if(!emp) return;
+  let ws=0,tw=0; const actuals={};
+  emp.kpis.forEach((k,i)=>{
+    const inp=document.querySelector('#ci-rows .ci-row:nth-child('+(i+1)+') input');
+    const v=inp?inp.value:''; actuals[i]=v;
+    const sc=kpiScore(k,v);
+    if(sc!==null){ws+=sc*(parseFloat(k.weight)||0);tw+=parseFloat(k.weight)||0;}
+  });
+  const tot=tw>0?ws/tw:0;
+  emp.quarters[q]=tot;
+  emp.quarters['_data_'+q]=actuals;
+  emp.quarters['_ctx_'+q]=document.getElementById('rm-ctx').value;
+  emp.quarters['_dev_'+q]=document.getElementById('rm-dev').value;
+  // Save per-KPI comments
+  const ciKey='_cicomment_'+q;
+  if(!emp.quarters[ciKey]) emp.quarters[ciKey]={};
+  emp.kpis.forEach((_,i)=>{
+    const ta=document.getElementById('cint-'+i);
+    if(ta) emp.quarters[ciKey][i]=ta.value;
+  });
+  saveState();
+  showToast('บันทึก '+q+' สำเร็จ ('+tot.toFixed(1)+'%)','ok');
+  renderCI(); renderEmpTable();
+}
+
+// ── DASHBOARD ────────────────────────────────
+const donutPlugin={id:'dLabel',afterDatasetsDraw(chart){
+  const{ctx,data}=chart; const tot=data.datasets[0].data.reduce((a,b)=>a+b,0);
+  chart.getDatasetMeta(0).data.forEach((arc,i)=>{
+    const v=data.datasets[0].data[i]; if(!v||!tot) return;
+    const pct=Math.round(v/tot*100);
+    const mid=(arc.startAngle+arc.endAngle)/2;
+    const r=(arc.innerRadius+arc.outerRadius)/2;
+    const x=arc.x+r*Math.cos(mid), y=arc.y+r*Math.sin(mid);
+    ctx.save(); ctx.fillStyle='#fff'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.font='bold 13px Arial'; ctx.fillText(v+'',x,y-7);
+    ctx.font='11px Arial'; ctx.fillText(pct+'%',x,y+7); ctx.restore();
+  });
+}};
+
+function renderDash() {
+  const total=employees.length;
+  const scores=employees.map(e=>calcAvg(e)).filter(s=>s!==null);
+  const avg=scores.length?scores.reduce((a,b)=>a+b,0)/scores.length:null;
+  const counts={A:0,B:0,C:0,D:0};
+  employees.forEach(e=>{const s=calcAvg(e);if(s!==null)counts[toRating(s)]++;});
+  const topA=counts.A, lowCD=counts.C+counts.D;
+
+  // Grade deviation (actual A% vs target 10%)
+  const actA=total>0?counts.A/total*100:0;
+  const dev=actA-10;
+
+  // Skewness guard: n<5 → N/A
+  let skewTxt='N/A', skewNote='ต้องการข้อมูล ≥5 คน';
+  if (scores.length>=5) {
+    const mean=scores.reduce((a,b)=>a+b,0)/scores.length;
+    const std=Math.sqrt(scores.reduce((a,b)=>a+(b-mean)**2,0)/scores.length);
+    const sk=std>0?scores.reduce((a,b)=>a+(b-mean)**3,0)/(scores.length*std**3):0;
+    skewTxt=sk.toFixed(2);
+    skewNote=sk>0.5?'Right-skewed':sk<-0.5?'Left-skewed':'Symmetric';
+  }
+
+  // Metric cards
+  document.getElementById('kv-total').textContent=total;
+  document.getElementById('kv-avg').textContent=avg!==null?avg.toFixed(1)+'%':'—';
+  document.getElementById('kv-top').textContent=topA;
+  document.getElementById('kv-low').textContent=lowCD;
+  document.getElementById('kv-dev').textContent=total>0?(dev>0?'+':'')+dev.toFixed(1)+'%':'—';
+  const kdDev=document.getElementById('kd-dev');
+  kdDev.textContent=dev>5?'⚠️ สูงกว่าเป้า':dev<-5?'📉 ต่ำกว่าเป้า':'✅ ปกติ';
+  kdDev.className='kd '+(Math.abs(dev)>5?'kd-up':'kd-ok');
+  document.getElementById('kv-skew').textContent=skewTxt;
+  const kdSk=document.getElementById('kd-skew');
+  kdSk.textContent=skewNote; kdSk.className='kd';
+
+  // Calibration Insights
+  const ib=document.getElementById('insight-body');
+  const ic=document.getElementById('insight-chips');
+  let txt='', chips=[];
+  if (!total) {
+    txt='ยังไม่มีข้อมูลพนักงาน กรุณาเพิ่มพนักงานและบันทึกผลรายไตรมาส';
+  } else if (!scores.length) {
+    txt='มีพนักงาน '+total+' คนแล้ว แต่ยังไม่มีการบันทึกผลไตรมาส กรุณาไปที่แท็บ "ติดตามผล"';
+  } else if (actA>60) {
+    txt='⚠️ พบ Grade Inflation: '+actA.toFixed(0)+'% ของพนักงานได้ Rating A สูงกว่า Target (10%) ถึง '+dev.toFixed(1)+'% — แนะนำทำ Calibration Meeting';
+    chips=[{t:'⚠️ Grade Inflation',c:'chip-r'},{t:'🔧 ต้อง Calibrate',c:'chip-r'}];
+  } else if (lowCD>0) {
+    txt='พบพนักงาน '+lowCD+' คนที่ต้องการการพัฒนา (Rating C/D) — แนะนำจัดทำ IDP และ Coaching Plan';
+    chips=[{t:'📋 ต้องทำ IDP',c:'chip-b'},{t:'🎯 Coaching Plan',c:'chip-b'}];
+  } else {
+    txt='✅ Rating Distribution อยู่ในช่วงปกติ คะแนนเฉลี่ยทีม '+avg.toFixed(1)+'%';
+    chips=[{t:'✅ Distribution ปกติ',c:'chip-g'}];
+  }
+  ib.textContent=txt;
+  ic.innerHTML=chips.map(c=>'<span class="chip '+c.c+'">'+c.t+'</span>').join('');
+
+  // Bell Curve line chart
+  const lbls=['A (ดีเยี่ยม)','B (ดี)','C (พอใช้)','D (ต้องพัฒนา)'];
+  const tgt=total>0?[total*0.05,total*0.25,total*0.55,total*0.15]:[0.5,2.5,5.5,1.5];
+  const act=[counts.A,counts.B,counts.C,counts.D];
+  if (bellChart) bellChart.destroy();
+  bellChart=new Chart(document.getElementById('ch-bell'),{
+    type:'line',
+    data:{labels:lbls,datasets:[
+      {label:'Target Curve',data:tgt,borderColor:'#94a3b8',borderDash:[6,4],borderWidth:2,fill:false,tension:.45,pointRadius:4,pointBackgroundColor:'#94a3b8'},
+      {label:'Actual',data:act,borderColor:'var(--blue)',borderWidth:2.5,backgroundColor:'rgba(37,99,235,.08)',fill:true,tension:.45,pointRadius:5,pointBackgroundColor:'var(--blue)'}
+    ]},
+    options:{responsive:true,plugins:{legend:{position:'bottom',labels:{font:{family:'Arial',size:11},padding:10}},
+      tooltip:{callbacks:{label(ctx){const v=ctx.parsed.y,tt=total||1;return ctx.dataset.label+': '+v.toFixed(1)+' คน ('+((v/tt)*100).toFixed(0)+'%)';}}}},
+      scales:{y:{beginAtZero:true,ticks:{precision:1}},x:{grid:{display:false}}}}
+  });
+
+  // Donut
+  if (donutChart) donutChart.destroy();
+  donutChart=new Chart(document.getElementById('ch-donut'),{
+    type:'doughnut', plugins:[donutPlugin],
+    data:{labels:['A','B','C','D'],datasets:[{data:[counts.A,counts.B,counts.C,counts.D],backgroundColor:['#16a34a','#2563EB','#d97706','#dc2626'],borderWidth:2}]},
+    options:{cutout:'62%',plugins:{legend:{position:'bottom',labels:{font:{family:'Arial',size:11},padding:8}}}}
+  });
+
+  // Trend
+  const qs=['Q1','Q2','Q3','Q4'];
+  const td=qs.map(q=>{const ss=employees.map(e=>e.quarters[q]).filter(s=>s!=null);return ss.length?ss.reduce((a,b)=>a+b,0)/ss.length:null;});
+  if (trendChart) trendChart.destroy();
+  trendChart=new Chart(document.getElementById('ch-trend'),{
+    type:'bar',
+    data:{labels:qs,datasets:[{label:'Team Avg %',data:td,backgroundColor:['rgba(37,99,235,.8)','rgba(15,118,110,.8)','rgba(234,88,12,.8)','rgba(124,58,237,.8)'],borderRadius:6,borderWidth:0}]},
+    options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{min:0,max:100,ticks:{callback:v=>v+'%'}}}}
+  });
+
+  // Score table
+  const tb=document.getElementById('dash-tbody');
+  tb.innerHTML=employees.map(emp=>{
+    const av=calcAvg(emp); const r=av!==null?toRating(av):null;
+    return '<tr><td><strong>'+emp.name+'</strong><br><small style="color:var(--muted);">'+(emp.pos||'')+'</small></td>' +
+      '<td>'+(emp.dept||'—')+'</td>' +
+      qs.map(q=>'<td>'+(emp.quarters[q]!=null?emp.quarters[q].toFixed(1)+'%':'—')+'</td>').join('') +
+      '<td><strong>'+(av!==null?av.toFixed(1)+'%':'—')+'</strong></td>' +
+      '<td>'+ratingPill(r)+'</td></tr>';
+  }).join()||'<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:20px;">ยังไม่มีข้อมูล</td></tr>';
+
+  // High Performance Teaser
+  renderHPSpotlight();
+}
+
+function renderHPSpotlight() {
+  const section = document.getElementById('hp-section');
+  const cards   = document.getElementById('hp-cards');
+  if (!section || !cards) return;
+
+  // Categorise: Star (A, ≥2Q data), Rising (B, improving trend), Watch (score drop)
+  const stars   = [];
+  const rising  = [];
+  const watch   = [];
+
+  employees.forEach(emp => {
+    const av  = calcAvg(emp);
+    if (av === null) return;
+    const r   = toRating(av);
+    const qScores = ['Q1','Q2','Q3','Q4'].map(q=>emp.quarters[q]).filter(s=>s!=null);
+    const trend = qScores.length >= 2 ? qScores[qScores.length-1] - qScores[0] : 0;
+
+    if (r === 'A')                           stars.push({ emp, av, trend });
+    else if (r === 'B' && trend > 5)         rising.push({ emp, av, trend });
+    else if (qScores.length >= 2 && trend < -8) watch.push({ emp, av, trend });
+  });
+
+  const hasAny = stars.length || rising.length || watch.length;
+  section.style.display = hasAny ? 'block' : 'none';
+  if (!hasAny) return;
+
+  const makeCard = (item, cls, scoreClass, tagClass, tagText, icon) => {
+    const { emp, av, trend } = item;
+    const trendStr = trend > 0 ? '↑ +'+trend.toFixed(1)+'%' : trend < 0 ? '↓ '+trend.toFixed(1)+'%' : '→ stable';
+    return '<div class="hp-card '+cls+'">' +
+      '<div class="hp-emp-name">'+icon+' '+emp.name+'</div>' +
+      '<div class="hp-emp-pos">'+(emp.pos||'—')+' · '+(emp.dept||'—')+'</div>' +
+      '<div class="hp-score '+scoreClass+'">'+av.toFixed(1)+'%</div>' +
+      '<div><span class="hp-tag '+tagClass+'">'+tagText+'</span>' +
+      '<span style="font-size:11px;color:var(--muted);margin-left:8px;">'+trendStr+'</span></div>' +
+      '<div style="font-size:10px;color:var(--muted);margin-top:6px;padding-top:6px;border-top:1px dashed #fde68a;">🔒 Potential score — ดูใน 9BOX-001 Bundle</div>' +
+      '</div>';
+  };
+
+  cards.innerHTML =
+    stars.map(x  => makeCard(x,'star', 'gold',   'hp-tag-gold',   '⭐ Top Performer','⭐')).join('') +
+    rising.map(x => makeCard(x,'rise', 'teal',   'hp-tag-teal',   '📈 Rising Star',  '📈')).join('') +
+    watch.map(x  => makeCard(x,'watch','orange',  'hp-tag-orange', '⚠️ Needs Attn',  '⚠️')).join('');
+}
+
+// ── UPGRADE MODAL ─────────────────────────────
+function showUpgrade(r) { document.getElementById('upg-modal').classList.remove('hidden'); }
+function closeUpgrade() { document.getElementById('upg-modal').classList.add('hidden'); }
+setTimeout(()=>showUpgrade('auto'), CFG.autoPopup);
+
+// ── TOAST ─────────────────────────────────────
+function showToast(msg,type='') {
+  const w=document.getElementById('toast-wrap');
+  const t=document.createElement('div');
+  t.className='toast '+type; t.textContent=msg;
+  w.appendChild(t); setTimeout(()=>t.remove(),3500);
+}
+
+// ── INIT ──────────────────────────────────────
+window.onload = function() {
+  document.getElementById('cy').textContent = new Date().getFullYear();
+  document.getElementById('fy').textContent = new Date().getFullYear();
+  loadState();
+
+  // Sample data if empty — 5 rich employees
+  if (!employees.length) {
+    const now = Date.now();
+    employees = [
+      {
+        id: now+1, _isSample:true, name:'สมชาย ใจดี', pos:'HR Manager', dept:'HR', year:'2026',
+        orgGoals:{ comp:'เพิ่มประสิทธิภาพ HR Operations 20% และลด Cost-per-Hire', dept:'Retain talent rate >90%, Fill rate <30 days' },
+        kpis:[
+          { name:'Recruit Fill Rate',         target:'90',  weight:30, unit:'%',   ktype:'higher',
+            kpi_note:'Benchmark จาก SHRM 2025 — ถ้ามี headcount freeze อนุโลมถึง 80%',
+            coaching_notes:{ Q1:'Performance ดีมาก ทำได้ 92% — maintain ระดับนี้', Q2:'ควร focus passive sourcing เพิ่ม', Q3:'', Q4:'' } },
+          { name:'Employee Engagement Score', target:'80',  weight:25, unit:'%',   ktype:'higher',
+            kpi_note:'วัดจาก Pulse Survey รายไตรมาส (Scale 1-100)',
+            coaching_notes:{ Q1:'Score Q1 ต่ำกว่าเป้า — ลอง Action Plan จาก survey', Q2:'', Q3:'', Q4:'' } },
+          { name:'Turnover Rate',             target:'5',   weight:25, unit:'%',   ktype:'lower',
+            kpi_note:'Industry avg 8% — เราตั้งท้าทายไว้ที่ 5% เพื่อ employer branding',
+            coaching_notes:{ Q1:'', Q2:'Q2 มีออก 2 คน ควรทำ exit interview ให้ครบ', Q3:'', Q4:'' } },
+          { name:'Training Hours/Person',     target:'40',  weight:20, unit:'ชม.', ktype:'higher',
+            kpi_note:'นับรวม on-the-job + classroom + e-learning',
+            coaching_notes:{ Q1:'', Q2:'', Q3:'', Q4:'' } }
+        ],
+        quarters:{ Q1:88.0, Q2:91.0, Q3:85.0,
+          '_data_Q1':{'0':'92','1':'75','2':'4.5','3':'38'},
+          '_data_Q2':{'0':'95','1':'82','2':'4.2','3':'42'},
+          '_data_Q3':{'0':'89','1':'78','2':'4.8','3':'35'},
+          '_ctx_Q1':'ผล Q1 ดีมาก Recruit rate สูง เนื่องจากปรับ JD ใหม่และใช้ LinkedIn พรีเมียม',
+          '_dev_Q1':'Q2 จะ focus ปรับ Engagement Survey format ให้ actionable ขึ้น',
+          '_ctx_Q2':'Q2 engagement ดีขึ้น หลัง action plan จาก Town Hall',
+          '_dev_Q2':'เพิ่ม 1:1 coaching ทุกสัปดาห์ และ stay interview กับ key talent' },
+        revisions:[]
+      },
+      {
+        id: now+2, _isSample:true, name:'วิไล สุขสันต์', pos:'Production Supervisor', dept:'Production', year:'2026',
+        orgGoals:{ comp:'เพิ่ม Production Capacity 15% และลด Waste ตาม Lean Manufacturing', dept:'OEE >85%, Zero Accident' },
+        kpis:[
+          { name:'Production Output',  target:'1000', weight:35, unit:'unit', ktype:'higher',
+            kpi_note:'Baseline จาก Q4 2025 avg 920 units — เป้า stretch ขึ้น 8.7%',
+            coaching_notes:{ Q1:'Output ดี แต่ควร reduce variance รายวัน', Q2:'', Q3:'', Q4:'' } },
+          { name:'Defect Rate',        target:'2',    weight:30, unit:'%',    ktype:'lower',
+            kpi_note:'วัดจาก QC final inspection — ไม่นับ rework ที่แก้ได้ในไลน์',
+            coaching_notes:{ Q1:'', Q2:'Defect spike สัปดาห์ที่ 3 — trace ไปที่ supplier batch B', Q3:'', Q4:'' } },
+          { name:'OEE',                target:'85',   weight:20, unit:'%',    ktype:'higher',
+            kpi_note:'เพิ่มจาก target เดิม 80% ตาม Kaizen Project ที่อนุมัติแล้ว',
+            coaching_notes:{ Q1:'', Q2:'', Q3:'', Q4:'' } },
+          { name:'Safety Incidents',   target:'0',    weight:15, unit:'ครั้ง', ktype:'lower',
+            kpi_note:'Zero tolerance — incident = immediate review ไม่ว่า severity เท่าไหร่',
+            coaching_notes:{ Q1:'✅ Q1 clean record ดีมาก', Q2:'', Q3:'', Q4:'' } }
+        ],
+        quarters:{ Q1:78.0, Q2:80.5, Q3:76.0,
+          '_data_Q2':{'0':'1050','1':'1.8','2':'84','3':'0'},
+          '_ctx_Q2':'Q2 output ดีมาก ทำได้ 1050 — Defect ดีขึ้นหลัง supplier เปลี่ยน batch',
+          '_dev_Q2':'Q3 จะ focus OEE — วางแผน Planned Maintenance เพิ่มเติม' },
+        revisions:[]
+      },
+      {
+        id: now+3, _isSample:true, name:'ประสิทธิ์ มั่นคง', pos:'Finance Analyst', dept:'Finance', year:'2026',
+        orgGoals:{ comp:'ปิดบัญชีให้เร็วขึ้น 2 วัน และเพิ่ม Forecast Accuracy', dept:'Month-end closing ≤3 วัน, Forecast accuracy >90%' },
+        kpis:[
+          { name:'Report Accuracy',   target:'99',  weight:40, unit:'%',  ktype:'higher',
+            kpi_note:'วัดจาก restatement rate — ถ้ามี restatement 1 ครั้ง = -5 คะแนน',
+            coaching_notes:{ Q1:'มี 1 restatement Q1 — หา root cause', Q2:'', Q3:'', Q4:'' } },
+          { name:'Month-end Closing', target:'3',   weight:30, unit:'วัน', ktype:'lower',
+            kpi_note:'นับจากวันสุดท้ายของเดือน — ถ้า SAP down ไม่นับ downtime',
+            coaching_notes:{ Q1:'ปิดได้วันที่ 4 — ต้องเร็วขึ้น 1 วัน', Q2:'ยังปิดวันที่ 4 — ควร automate AP reconcile', Q3:'', Q4:'' } },
+          { name:'Forecast Accuracy', target:'90',  weight:30, unit:'%',  ktype:'higher',
+            kpi_note:'MAPE-based — วัด monthly rolling 3 เดือน',
+            coaching_notes:{ Q1:'', Q2:'Forecast miss Q2 เนื่องจาก FX volatility ที่คาดไม่ถึง', Q3:'', Q4:'' } }
+        ],
+        quarters:{ Q1:65.0, Q2:62.0,
+          '_ctx_Q1':'Closing ช้า เนื่องจาก SAP upgrade กลางเดือน ทำให้ระบบ down 1.5 วัน',
+          '_dev_Q1':'Q2 จะเข้า SAP Advanced Training และทำ process mapping ใหม่',
+          '_ctx_Q2':'ยังช้าอยู่ แม้ SAP ปกติแล้ว — น่าจะเป็น manual step ใน AP',
+          '_dev_Q2':'เข้า shadowing กับ Senior Analyst 4 สัปดาห์ + automate AP reconcile' },
+        revisions:[
+          { ts:'15/04/2026, 09:00:00', reason:'SAP upgrade กลาง Q1 ทำให้ Closing days พุ่ง — ขอ adjust target Q2 เป็น 4 วัน แทน 3 วัน', approver:'Finance Director', kpis_snapshot:'3 KPI items' }
+        ]
+      },
+      {
+        id: now+4, _isSample:true, name:'นภา รุ่งเรือง', pos:'Sales Executive', dept:'Sales', year:'2026',
+        orgGoals:{ comp:'เพิ่ม Revenue 20% YoY และขยาย Customer Base ในภูมิภาค', dept:'Revenue 60M/ปี, New Customer 120 ราย' },
+        kpis:[
+          { name:'Monthly Revenue',      target:'5000000', weight:50, unit:'บาท', ktype:'higher',
+            kpi_note:'Target ปรับเหลือ 3.5M หลัง Q1 เนื่องจาก market contraction — ดู Revision Log',
+            coaching_notes:{ Q1:'Miss target แต่ market conditions ยาก — ให้ focus new customer แทน', Q2:'ดีขึ้นมาก หลัง revise target — maintain momentum', Q3:'', Q4:'' } },
+          { name:'New Customer (ราย)',    target:'10',      weight:30, unit:'ราย', ktype:'higher',
+            kpi_note:'นับเฉพาะ First Purchase >50,000 บาท',
+            coaching_notes:{ Q1:'7/10 ราย — ดี แต่ต้อง push อีก', Q2:'11/10 ✅ เกิน target!', Q3:'', Q4:'' } },
+          { name:'Customer Retention',   target:'85',      weight:20, unit:'%',   ktype:'higher',
+            kpi_note:'วัดจาก repeat purchase ใน 6 เดือน',
+            coaching_notes:{ Q1:'', Q2:'', Q3:'', Q4:'' } }
+        ],
+        quarters:{ Q1:70.0, Q2:82.0,
+          '_ctx_Q1':'Revenue miss เนื่องจาก 2 deal ใหญ่ถูก postpone — market B2B ชะลอ',
+          '_dev_Q1':'Q2 ปรับ target ผ่าน Goal Revision + focus SME segment แทน enterprise',
+          '_ctx_Q2':'หลัง revise target ทำได้ดีมาก New customer เกิน target',
+          '_dev_Q2':'Q3 วางแผน referral program กับ existing customer' },
+        revisions:[
+          { ts:'15/05/2026, 10:30:00', reason:'Market contraction B2B — Revenue target ปรับจาก 5M เป็น 3.5M/เดือน ตามมติ Sales Committee', approver:'Sales Director', kpis_snapshot:'3 KPI items' }
+        ]
+      },
+      {
+        id: now+5, _isSample:true, name:'กิตติ เก่งกาจ', pos:'IT Developer', dept:'IT', year:'2026',
+        orgGoals:{ comp:'Digital Transformation — ส่ง 3 ระบบหลัก Go-live ภายใน Q3', dept:'Sprint velocity >80 pts, System uptime >99.5%' },
+        kpis:[
+          { name:'Sprint Velocity',    target:'80',  weight:35, unit:'pts', ktype:'higher',
+            kpi_note:'Baseline Q4 2025 = 72 pts — เป้า stretch 11% ตาม capacity planning',
+            coaching_notes:{ Q1:'92 pts ✅ เกิน target — ดีมาก', Q2:'88 pts ✅', Q3:'90 pts ✅', Q4:'94 pts ✅ ดีที่สุด' } },
+          { name:'Bug Rate',           target:'5',   weight:30, unit:'ครั้ง/เดือน', ktype:'lower',
+            kpi_note:'นับ Bug severity P1+P2 เท่านั้น — P3/P4 ไม่นับ',
+            coaching_notes:{ Q1:'3 bugs — ดี', Q2:'4 bugs — OK', Q3:'2 bugs — excellent', Q4:'1 bug — perfect' } },
+          { name:'Code Review Pass',   target:'90',  weight:20, unit:'%',  ktype:'higher',
+            kpi_note:'นับจาก PR ที่ pass review ครั้งแรก / total PR',
+            coaching_notes:{ Q1:'', Q2:'', Q3:'', Q4:'' } },
+          { name:'On-time Delivery',   target:'95',  weight:15, unit:'%',  ktype:'higher',
+            kpi_note:'นับ feature ที่ deploy ตรง sprint plan — ไม่นับ scope change',
+            coaching_notes:{ Q1:'', Q2:'', Q3:'', Q4:'' } }
+        ],
+        quarters:{
+          Q1:92.0, Q2:88.0, Q3:90.0, Q4:94.0,
+          '_data_Q1':{'0':'92','1':'3','2':'93','3':'97'},
+          '_data_Q2':{'0':'88','1':'4','2':'91','3':'95'},
+          '_data_Q3':{'0':'90','1':'2','2':'94','3':'96'},
+          '_data_Q4':{'0':'94','1':'1','2':'95','3':'98'},
+          '_ctx_Q4':'Q4 ดีที่สุดในปี — ทุก KPI เกิน target',
+          '_dev_Q4':'2027: เป้า velocity 90 pts, หัวหน้าทีมเพิ่ม 1 คน' },
+        revisions:[]
+      }
+    ];
+    saveState();
+  }
+  refreshAll();
+};
+</script>
+</body>
+</html>
