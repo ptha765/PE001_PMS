@@ -514,7 +514,7 @@ textarea.rm-input:focus{border-color:var(--blue);}
 
     <!-- AI PANEL -->
     <div class="ai-panel">
-      <div class="ai-badge">✨ AI แนะนำ SMART KPI</div>
+      <div class="ai-badge">✨ SMART KPI Template Engine</div>
       <div class="form-grid" style="grid-template-columns:1fr 1fr;">
         <div class="fg"><label data-th="ตำแหน่ง/บทบาท" data-en="Role">ตำแหน่ง/บทบาท</label>
           <input id="ai-role" placeholder="HR Manager, Production Supervisor..."></div>
@@ -523,10 +523,10 @@ textarea.rm-input:focus{border-color:var(--blue);}
       </div>
       <div style="display:flex;gap:10px;align-items:center;margin-top:2px;">
         <button class="btn btn-ai" onclick="genAI()">✨ <span data-th="แนะนำ KPI" data-en="Suggest KPI">แนะนำ KPI</span></button>
-        <span id="ai-spin" style="display:none;"><span class="spinner"></span> <span style="font-size:13px;color:var(--muted);">กำลังสร้าง...</span></span>
+        <span id="ai-spin" style="display:none;"><span class="spinner"></span> <span style="font-size:13px;color:var(--muted);">กำลังวิเคราะห์ตำแหน่งงาน...</span></span>
       </div>
       <div id="ai-out" style="display:none;"></div>
-      <div class="demo-ai-note">🔒 Demo: ใช้ AI ได้ 1 ครั้ง | Full Version: ไม่จำกัด</div>
+      <div class="demo-ai-note">⚡ ทำงาน Offline 100% — ไม่ต้อง Internet | 🔒 Demo: 1 ครั้ง | Full Version: ไม่จำกัด</div>
     </div>
 
     <!-- KPI ITEMS -->
@@ -795,14 +795,14 @@ textarea.rm-input:focus{border-color:var(--blue);}
         <div class="feat-row">✅ ทดลองฟรี</div>
         <div class="feat-row">⚠️ 3 พนักงาน</div>
         <div class="feat-row no">❌ Export Excel/PDF</div>
-        <div class="feat-row no">❌ AI ไม่จำกัด</div>
+        <div class="feat-row">⚠️ SMART KPI 1 ครั้ง</div>
         <div class="feat-row no">❌ localStorage save</div>
       </div>
       <div class="feat-col full"><div class="feat-head">Full Version</div>
         <div class="feat-row">✅ ใช้ทันที</div>
         <div class="feat-row">✅ ไม่จำกัดพนักงาน</div>
         <div class="feat-row">✅ Export Excel + PDF</div>
-        <div class="feat-row">✅ AI ไม่จำกัด</div>
+        <div class="feat-row">✅ SMART KPI ไม่จำกัดครั้ง</div>
         <div class="feat-row">✅ บันทึกข้อมูลถาวร</div>
       </div>
     </div>
@@ -810,14 +810,15 @@ textarea.rm-input:focus{border-color:var(--blue);}
       <div style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:10px;">📱 ช่องทางชำระเงิน</div>
       <div class="pay-grid">
         <div style="text-align:center;flex-shrink:0;">
-          <img src="SWP001_PromptPay_QR_v2.png" alt="QR" class="qr-img"
+          <img src="PromptPay_QR_Krungthai.jpeg" alt="QR" class="qr-img"
                onerror="this.style.display='none';document.getElementById('qr-fb').style.display='flex'">
           <div id="qr-fb" class="qr-fb">📱<small>QR</small></div>
           <div style="font-size:10px;color:var(--muted);margin-top:4px;">สแกน PromptPay</div>
         </div>
         <div class="pay-rows">
-          <div class="pay-row"><span class="pay-label">PromptPay</span><span class="pay-val">[PromptPay Number]</span></div>
-          <div class="pay-row"><span class="pay-label">ชื่อบัญชี</span><span class="pay-val">Pattamapanee Thassakhorn</span></div>
+          <div class="pay-row"><span class="pay-label">ธนาคาร</span><span class="pay-val">กรุงไทย</span></div>
+          <div class="pay-row"><span class="pay-label">PromptPay</span><span class="pay-val">085-001-9384</span></div>
+          <div class="pay-row"><span class="pay-label">ชื่อบัญชี</span><span class="pay-val">ปัทมปาณี ทัศคร</span></div>
           <div class="pay-row"><span class="pay-label">จำนวน</span><span class="pay-val big">฿765</span></div>
           <div class="pay-steps">
             <div class="pay-step">1️⃣ โอน ฿765</div>
@@ -827,7 +828,7 @@ textarea.rm-input:focus{border-color:var(--blue);}
         </div>
       </div>
     </div>
-    <a href="mailto:pattamapanee.tha@gmail.com?subject=ซื้อ PE-001 Full Version ฿765" class="btn-buy">📧 ส่งสลิปทาง Email</a>
+    <a href="mailto:pattamapanee.tha@gmail.com?subject=ซื้อ PE-001 KPI Full Version ฿765&body=สวัสดีค่ะ%0A%0Aต้องการซื้อ PE-001 Full Version ฿765%0A%0Aชื่อ: %0Aบริษัท: %0A%0A(แนบสลิปด้วยนะคะ)" class="btn-buy">📧 ส่งสลิปทาง Email</a>
     <button class="btn-demo-cont" onclick="closeUpgrade()">ทดลองต่อ (Demo)</button>
     <div style="text-align:center;font-size:10px;color:#94a3b8;margin-top:10px;">📧 pattamapanee.tha@gmail.com</div>
   </div>
@@ -1138,50 +1139,218 @@ function renderRevHistory(emp) {
 }
 
 // ── AI SMART KPI ──────────────────────────────
-async function genAI() {
+function genAI() {
   if (aiUsed >= CFG.maxAI) { showUpgrade('ai'); return; }
   const role = document.getElementById('ai-role').value.trim();
   const ind  = document.getElementById('ai-ind').value.trim();
   const comp = document.getElementById('inp-comp-goal').value.trim();
   const dept = document.getElementById('inp-dept-goal').value.trim();
   if (!role) { showToast('กรุณาใส่ตำแหน่งงาน','warn'); return; }
+
   aiUsed++; saveState();
-  document.getElementById('ai-spin').style.display='flex';
-  document.getElementById('ai-out').style.display='none';
-  const prompt =
-    'คุณเป็น HR Expert เชี่ยวชาญ SMART KPI\n' +
-    'ตำแหน่ง: ' + role + (ind?' อุตสาหกรรม: '+ind:'') + '\n' +
-    (comp?'Company Goal: '+comp+'\n':'') +
-    (dept?'Dept Goal: '+dept+'\n':'') +
-    'แนะนำ KPI 5 ตัวที่ Cascade จาก Org Goal โดยตอบ JSON array เท่านั้น ห้าม markdown:\n' +
-    '[{"name":"","target":"","unit":"","weight":20,"ktype":"higher","smart_note":"","cascade_from":"Company/Dept Goal"}]' +
-    '\nweight รวม=100. ktype: higher=ยิ่งสูงยิ่งดี, lower=ยิ่งต่ำยิ่งดี';
-  try {
-    const res = await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ model:'claude-sonnet-4-6', max_tokens:1000,
-        messages:[{role:'user',content:prompt}] })
-    });
-    const data = await res.json();
-    const txt = data.content.map(c=>c.text||'').join('');
-    const kpis = JSON.parse(txt.replace(/```json|```/g,'').trim());
-    const out = document.getElementById('ai-out');
-    out.innerHTML = '<div class="ai-result-box">' +
-      '<div style="font-size:12px;font-weight:700;color:var(--purple);margin-bottom:8px;">✨ AI แนะนำ KPI Cascade สำหรับ '+role+'</div>' +
-      '<table style="width:100%;border-collapse:collapse;font-size:12px;">' +
-      '<tr style="background:#f5f3ff;"><th style="padding:5px 7px;text-align:left;">KPI</th><th>เป้า</th><th>น้ำหนัก</th><th>Cascade จาก</th></tr>' +
-      kpis.map(k=>'<tr style="border-bottom:1px solid #e9d5ff;"><td style="padding:5px 7px;"><strong>'+k.name+'</strong><br><span style="color:var(--muted);font-size:11px;">'+k.smart_note+'</span></td><td style="text-align:center;">'+k.target+' '+k.unit+'</td><td style="text-align:center;"><span class="wt-badge">'+k.weight+'%</span></td><td style="font-size:11px;color:var(--muted);">'+k.cascade_from+'</td></tr>').join('') +
-      '</table>' +
-      '<button class="btn btn-teal" style="margin-top:10px;font-size:12px;" onclick="applyAI()">✅ ใช้ KPI เหล่านี้</button>' +
+  document.getElementById('ai-spin').style.display = 'flex';
+  document.getElementById('ai-out').style.display  = 'none';
+
+  // ── Offline Smart KPI Engine ──────────────────────────
+  // Phase 1: Rule-based HROD expertise — no API, no internet required
+  setTimeout(() => {
+    const kpis = smartKpiEngine(role, ind, comp, dept);
+    const out  = document.getElementById('ai-out');
+    out.innerHTML =
+      '<div class="ai-result-box">' +
+        '<div style="font-size:11px;background:#f0fdf4;color:#15803d;border-radius:6px;padding:5px 10px;margin-bottom:8px;display:inline-flex;align-items:center;gap:5px;">' +
+          '⚡ Smart Template Engine — ทำงาน Offline ได้ ไม่ต้อง Internet' +
+        '</div>' +
+        '<div style="font-size:12px;font-weight:700;color:var(--purple);margin-bottom:8px;">✨ SMART KPI แนะนำสำหรับ ' + role + '</div>' +
+        '<table style="width:100%;border-collapse:collapse;font-size:12px;">' +
+        '<tr style="background:#f5f3ff;"><th style="padding:5px 7px;text-align:left;">KPI</th><th>เป้า</th><th>น้ำหนัก</th><th>Cascade จาก</th></tr>' +
+        kpis.map(k =>
+          '<tr style="border-bottom:1px solid #e9d5ff;">' +
+          '<td style="padding:5px 7px;"><strong>' + k.name + '</strong><br>' +
+          '<span style="color:var(--muted);font-size:11px;">' + k.smart_note + '</span></td>' +
+          '<td style="text-align:center;">' + k.target + ' ' + k.unit + '</td>' +
+          '<td style="text-align:center;"><span class="wt-badge">' + k.weight + '%</span></td>' +
+          '<td style="font-size:11px;color:var(--muted);">' + k.cascade_from + '</td>' +
+          '</tr>'
+        ).join('') +
+        '</table>' +
+        '<button class="btn btn-teal" style="margin-top:10px;font-size:12px;" onclick="applyAI()">✅ ใช้ KPI เหล่านี้</button>' +
       '</div>';
-    out._kpis = kpis; out.style.display='block';
-    showToast('AI สร้าง KPI สำเร็จ','ok');
-  } catch(e) {
-    document.getElementById('ai-out').innerHTML='<div style="color:var(--danger);font-size:13px;">Error: '+e.message+'</div>';
-    document.getElementById('ai-out').style.display='block'; aiUsed--;
-  }
-  document.getElementById('ai-spin').style.display='none';
+    out._kpis = kpis;
+    out.style.display = 'block';
+    document.getElementById('ai-spin').style.display = 'none';
+    showToast('สร้าง SMART KPI สำเร็จ ✅', 'ok');
+  }, 800);
 }
+
+// ── Smart KPI Template Engine ─────────────────────────────
+// HROD expertise embedded — Phase 1 Offline-First
+function smartKpiEngine(role, industry, compGoal, deptGoal) {
+  const r   = role.toLowerCase();
+  const ind = industry.toLowerCase();
+
+  // ── KPI Libraries by Role ──────────────────────────────
+  const libs = {
+    hr: [
+      { name:'Recruit Fill Rate (อัตราบรรจุตรงเวลา)', target:'90', unit:'%', weight:25, ktype:'higher',
+        smart_note:'% ตำแหน่งที่บรรจุได้ภายใน SLA เทียบกับทั้งหมด',
+        cascade_from: compGoal || 'Company Efficiency Goal' },
+      { name:'Turnover Rate (อัตราการลาออก)', target:'8', unit:'%', weight:20, ktype:'lower',
+        smart_note:'อัตราลาออกรายปี — ยิ่งต่ำยิ่งดี เทียบ Industry avg',
+        cascade_from: deptGoal || 'Dept Retention Goal' },
+      { name:'Employee Engagement Score', target:'75', unit:'%', weight:20, ktype:'higher',
+        smart_note:'จาก Pulse Survey รายไตรมาส (scale 0-100)',
+        cascade_from: compGoal || 'People Strategy Goal' },
+      { name:'Training Hours per Person', target:'40', unit:'ชม./ปี', weight:20, ktype:'higher',
+        smart_note:'รวม On-the-job + Classroom + E-learning ต่อคนต่อปี',
+        cascade_from: deptGoal || 'Capability Development Goal' },
+      { name:'HR Cost per Hire', target:'15000', unit:'บาท', weight:15, ktype:'lower',
+        smart_note:'ต้นทุนการสรรหาต่อ 1 คนที่บรรจุสำเร็จ',
+        cascade_from: compGoal || 'Cost Efficiency Goal' },
+    ],
+    production: [
+      { name:'Production Output', target:'1000', unit:'unit/เดือน', weight:30, ktype:'higher',
+        smart_note:'จำนวนชิ้นงานที่ผลิตได้จริงต่อเดือน',
+        cascade_from: compGoal || 'Production Capacity Goal' },
+      { name:'Defect Rate (ของเสีย)', target:'2', unit:'%', weight:25, ktype:'lower',
+        smart_note:'% ชิ้นงานที่ไม่ผ่าน QC ต่อยอดผลิตทั้งหมด',
+        cascade_from: deptGoal || 'Quality Improvement Goal' },
+      { name:'OEE (Overall Equipment Effectiveness)', target:'85', unit:'%', weight:20, ktype:'higher',
+        smart_note:'Availability × Performance × Quality',
+        cascade_from: compGoal || 'Operational Excellence Goal' },
+      { name:'Safety Incidents', target:'0', unit:'ครั้ง/เดือน', weight:15, ktype:'lower',
+        smart_note:'Zero tolerance — นับ incident P1 และ P2 เท่านั้น',
+        cascade_from: deptGoal || 'Safety Culture Goal' },
+      { name:'On-time Delivery Rate', target:'95', unit:'%', weight:10, ktype:'higher',
+        smart_note:'% order ที่ส่งมอบตรงตาม delivery schedule',
+        cascade_from: compGoal || 'Customer Satisfaction Goal' },
+    ],
+    finance: [
+      { name:'Financial Report Accuracy', target:'99', unit:'%', weight:35, ktype:'higher',
+        smart_note:'% รายงานที่ไม่มี restatement — วัดจาก audit findings',
+        cascade_from: compGoal || 'Financial Integrity Goal' },
+      { name:'Month-end Closing Days', target:'3', unit:'วัน', weight:25, ktype:'lower',
+        smart_note:'จำนวนวันทำการหลังสิ้นเดือน — ยิ่งน้อยยิ่งดี',
+        cascade_from: deptGoal || 'Process Efficiency Goal' },
+      { name:'Forecast Accuracy (MAPE)', target:'90', unit:'%', weight:20, ktype:'higher',
+        smart_note:'1 - MAPE ของ rolling 3-month forecast',
+        cascade_from: compGoal || 'Business Planning Goal' },
+      { name:'Budget Variance', target:'5', unit:'%', weight:10, ktype:'lower',
+        smart_note:'% ความแตกต่าง Actual vs Budget ทุกไตรมาส',
+        cascade_from: deptGoal || 'Budget Control Goal' },
+      { name:'Accounts Payable Cycle Days', target:'30', unit:'วัน', weight:10, ktype:'lower',
+        smart_note:'DPO — จำนวนวันเฉลี่ยในการชำระหนี้ผู้ขาย',
+        cascade_from: compGoal || 'Cash Flow Management Goal' },
+    ],
+    sales: [
+      { name:'Revenue Achievement', target:'100', unit:'% ของเป้า', weight:35, ktype:'higher',
+        smart_note:'ยอดขายจริง / เป้า × 100 — วัดรายเดือน',
+        cascade_from: compGoal || 'Revenue Growth Goal' },
+      { name:'New Customer Acquisition', target:'10', unit:'ราย/เดือน', weight:25, ktype:'higher',
+        smart_note:'นับเฉพาะ First Purchase > threshold ที่กำหนด',
+        cascade_from: deptGoal || 'Market Expansion Goal' },
+      { name:'Customer Retention Rate', target:'85', unit:'%', weight:20, ktype:'higher',
+        smart_note:'% ลูกค้าเดิมที่ซื้อซ้ำใน 12 เดือน',
+        cascade_from: compGoal || 'Customer Loyalty Goal' },
+      { name:'Sales Pipeline Value', target:'3', unit:'x Monthly Target', weight:10, ktype:'higher',
+        smart_note:'มูลค่า Pipeline ควรมี 3x ของ monthly target เสมอ',
+        cascade_from: deptGoal || 'Pipeline Health Goal' },
+      { name:'Average Deal Cycle Days', target:'21', unit:'วัน', weight:10, ktype:'lower',
+        smart_note:'จำนวนวันจาก Lead → Closed Won เฉลี่ย',
+        cascade_from: compGoal || 'Sales Efficiency Goal' },
+    ],
+    it: [
+      { name:'Sprint Velocity', target:'80', unit:'story points', weight:30, ktype:'higher',
+        smart_note:'Story points ที่ complete ต่อ sprint — baseline จาก Q ที่แล้ว',
+        cascade_from: compGoal || 'Digital Transformation Goal' },
+      { name:'Bug Rate (P1+P2)', target:'3', unit:'bugs/เดือน', weight:25, ktype:'lower',
+        smart_note:'นับเฉพาะ Critical และ High severity bugs เท่านั้น',
+        cascade_from: deptGoal || 'Quality & Stability Goal' },
+      { name:'System Uptime', target:'99.5', unit:'%', weight:20, ktype:'higher',
+        smart_note:'Availability ของ production systems (excl. planned maintenance)',
+        cascade_from: compGoal || 'Business Continuity Goal' },
+      { name:'On-time Feature Delivery', target:'90', unit:'%', weight:15, ktype:'higher',
+        smart_note:'% features ที่ deliver ตรง sprint plan (excl. scope change)',
+        cascade_from: deptGoal || 'Agile Delivery Goal' },
+      { name:'Code Review Pass Rate', target:'85', unit:'%', weight:10, ktype:'higher',
+        smart_note:'% PR ที่ผ่าน review ครั้งแรกโดยไม่ต้อง major revision',
+        cascade_from: compGoal || 'Engineering Excellence Goal' },
+    ],
+    manager: [
+      { name:'Team KPI Achievement Rate', target:'80', unit:'%', weight:30, ktype:'higher',
+        smart_note:'% ทีมที่ achieve KPI ≥ B rating (≥75%) ในปีนี้',
+        cascade_from: compGoal || 'People Performance Goal' },
+      { name:'Project On-time Delivery', target:'90', unit:'%', weight:25, ktype:'higher',
+        smart_note:'% โครงการที่ส่งมอบตรงตาม committed timeline',
+        cascade_from: deptGoal || 'Operational Excellence Goal' },
+      { name:'Team Engagement Score', target:'75', unit:'%', weight:20, ktype:'higher',
+        smart_note:'คะแนน Engagement ของทีมจาก Pulse Survey รายไตรมาส',
+        cascade_from: compGoal || 'Culture & People Goal' },
+      { name:'Budget Utilization Rate', target:'95', unit:'%', weight:15, ktype:'higher',
+        smart_note:'% งบประมาณที่ใช้จริง vs approved budget (ไม่เกิน 100%)',
+        cascade_from: deptGoal || 'Resource Management Goal' },
+      { name:'Coaching Sessions Completed', target:'12', unit:'ครั้ง/ปี', weight:10, ktype:'higher',
+        smart_note:'1:1 Coaching กับทีม — อย่างน้อย 1 ครั้ง/เดือน',
+        cascade_from: compGoal || 'Leadership Development Goal' },
+    ],
+    hrd: [
+      { name:'Training Completion Rate', target:'90', unit:'%', weight:25, ktype:'higher',
+        smart_note:'% พนักงานที่เข้าอบรมตามแผน TNA ปีนี้',
+        cascade_from: compGoal || 'Capability Building Goal' },
+      { name:'Training ROI Score', target:'150', unit:'%', weight:20, ktype:'higher',
+        smart_note:'(Value of improved performance / Training cost) × 100',
+        cascade_from: deptGoal || 'Learning Effectiveness Goal' },
+      { name:'Post-training Skill Application Rate', target:'70', unit:'%', weight:20, ktype:'higher',
+        smart_note:'% ผู้เข้าอบรมที่ประยุกต์ใช้ทักษะจริง (Kirkpatrick Level 3)',
+        cascade_from: compGoal || 'People Development Goal' },
+      { name:'Training Hours per Person', target:'40', unit:'ชม./ปี', weight:20, ktype:'higher',
+        smart_note:'รวม ILT + OJT + E-learning เฉลี่ยต่อคนต่อปี',
+        cascade_from: deptGoal || 'Learning Culture Goal' },
+      { name:'Course Satisfaction Score', target:'85', unit:'%', weight:15, ktype:'higher',
+        smart_note:'คะแนน Reaction ของผู้เข้าอบรม (Kirkpatrick Level 1)',
+        cascade_from: compGoal || 'Quality of Learning Goal' },
+    ],
+  };
+
+  // ── Role Matching ──────────────────────────────────────
+  let matched = null;
+  if (/hr\s*(manager|officer|director|bp|business|generalist|specialist)|people|talent|recruit|hrd|hrbp/.test(r)) {
+    matched = /train|learning|develop|l&d|hrd/.test(r) ? libs.hrd : libs.hr;
+  } else if (/produc|manufactur|supervisor|foreman|plant|operation|engineer|technician/.test(r)) {
+    matched = libs.production;
+  } else if (/financ|account|controller|cfo|treasury|tax|audit/.test(r)) {
+    matched = libs.finance;
+  } else if (/sale|business\s*dev|bd|account\s*exec|commercial/.test(r)) {
+    matched = libs.sales;
+  } else if (/it|develop|engineer|software|system|tech|digital|data|devops/.test(r)) {
+    matched = libs.it;
+  } else if (/manager|director|head|chief|vp|lead|supervisor/.test(r)) {
+    matched = libs.manager;
+  }
+
+  // ── Industry Adjustment ───────────────────────────────
+  if (!matched) {
+    // Default: use manager template with generic goals
+    matched = libs.manager;
+  }
+
+  // Deep clone + personalise cascade_from
+  const result = matched.map(k => ({
+    name:         k.name,
+    target:       k.target,
+    unit:         k.unit,
+    weight:       k.weight,
+    ktype:        k.ktype,
+    smart_note:   k.smart_note,
+    cascade_from: (compGoal && k.cascade_from.includes('Company'))
+                    ? compGoal.slice(0,40) + (compGoal.length>40?'...':'')
+                    : (deptGoal && k.cascade_from.includes('Dept'))
+                    ? deptGoal.slice(0,40) + (deptGoal.length>40?'...':'')
+                    : k.cascade_from,
+  }));
+  return result;
+}
+
 function applyAI() {
   const out = document.getElementById('ai-out');
   const kpis = out._kpis; if (!kpis) return;
